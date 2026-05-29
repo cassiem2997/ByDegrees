@@ -1,21 +1,33 @@
+<p align="center">
+  <img src="./public/images/gion-logo-transparent.png" alt="기온별플리" width="320" />
+</p>
+
 # By Degrees | 기온별플리
 
-'기온별 옷차림' 이미지에서 착안하여 기온 구간별로 어울리는 곡을 배치하고, 9:16 플레이리스트 이미지로 저장하거나 SNS에 공유하는 Next.js App Router 서비스입니다.
+**기온별플리**는 '기온별 옷차림' 이미지에서 착안하여 기온 구간별로 어울리는 곡을 배치하고, 9:16 플레이리스트 이미지로 저장하거나 SNS에 공유하는 팬메이드 서비스입니다.
 
-## Features
+“28도에 듣고 싶은 곡”, “초겨울에 어울리는 곡”처럼 온도별 감각을 기준으로 음악을 고르고, 완성된 플레이리스트를 인스타그램 스토리나 X, 카카오톡에 공유하는 경험을 목표로 만들었습니다.
 
-- 닉네임 기반 플레이리스트 생성 플로우
-- 단일 아티스트 또는 다양한 아티스트 모드
-- Spotify Web API 기반 아티스트/트랙 검색
-- 기온 구간별 3곡 선택 UI
-- 9:16 모바일 세로형 플레이리스트 이미지 미리보기
+## Product Flow
+
+1. 이름 또는 닉네임을 입력합니다.
+2. 한 아티스트의 곡으로 만들지, 여러 아티스트 곡으로 만들지 선택합니다.
+3. Spotify 검색으로 아티스트와 곡을 고릅니다.
+4. 8개 기온 구간마다 최대 3곡씩 배치합니다.
+5. 9:16 플레이리스트 이미지를 미리보고 저장합니다.
+6. Instagram, X, KakaoTalk로 공유합니다.
+
+## Highlights
+
+- 모바일 중심의 9:16 플레이리스트 이미지
+- 기온 구간별 컬러, 이모지, 앨범아트 레이아웃
 - iOS/Android에서 길게 눌러 저장할 수 있는 실제 이미지 미리보기
-- X, Instagram, KakaoTalk 공유 진입점
-- Kakao JavaScript SDK 공유 연동
-- 페이지 조회, 곡 선택, 이미지 저장, 공유 이벤트 수집
+- Kakao JavaScript SDK 기반 카카오톡 공유
+- X intent, Instagram caption/save flow
+- 생성, 곡 선택, 저장, 공유 이벤트 로깅
 - 관리자 통계 대시보드
 
-## Stack
+## Tech Stack
 
 - Next.js App Router
 - React
@@ -26,7 +38,7 @@
 - Kakao JavaScript SDK
 - Vercel
 
-## Local Setup
+## Local Development
 
 ```bash
 npm install
@@ -74,12 +86,10 @@ npm run migrate
 
 ## Deploy on Vercel
 
-1. GitHub에 repository를 생성합니다.
-2. 로컬 repository에 remote를 연결하고 `main` 브랜치를 push합니다.
-3. Vercel에서 GitHub repository를 import합니다.
-4. Vercel Project Settings에 Environment Variables를 등록합니다.
-5. Neon database에 migration을 적용합니다.
-6. 배포 URL을 `NEXT_PUBLIC_APP_URL`과 Kakao Developers Web platform domain에 반영합니다.
+1. GitHub repository를 Vercel에서 import합니다.
+2. Vercel Project Settings에 Environment Variables를 등록합니다.
+3. Neon database에 migration을 적용합니다.
+4. 배포 URL을 `NEXT_PUBLIC_APP_URL`과 Kakao Developers Web platform domain에 반영합니다.
 
 ## Scripts
 
@@ -92,7 +102,7 @@ npm run migrate
 npm run migrate:status
 ```
 
-## Important Files
+## Project Structure
 
 - `app/create/page.tsx`: 플레이리스트 생성 화면
 - `app/preview/page.tsx`: 로컬 이미지 미리보기 화면
