@@ -95,21 +95,23 @@ function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
   const displayTitle = title || "기온별 플리";
   const [mainTitle, nickname] = displayTitle.split(" by ");
   const byText = nickname ? ` by ${nickname}` : "";
+  const mainTitleSize = 22;
+  const byTextSize = mainTitleSize * 0.7;
 
   ctx.textBaseline = "alphabetic";
-  ctx.font = titleFont(22, 800);
+  ctx.font = titleFont(mainTitleSize, 800);
   const mainWidth = ctx.measureText(mainTitle).width;
-  ctx.font = titleFont(22, 500);
+  ctx.font = titleFont(byTextSize, 500);
   const byWidth = ctx.measureText(byText).width;
   let x = (370 - mainWidth - byWidth) / 2;
 
-  ctx.font = titleFont(22, 800);
+  ctx.font = titleFont(mainTitleSize, 800);
   ctx.fillStyle = "#1c1b1b";
   ctx.fillText(mainTitle, x, 32);
   x += mainWidth;
 
   if (byText) {
-    ctx.font = titleFont(22, 500);
+    ctx.font = titleFont(byTextSize, 500);
     ctx.fillStyle = "#4f4a47";
     ctx.fillText(byText, x, 32);
   }

@@ -490,7 +490,7 @@ export function CreateBoardClient({
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-[450px] px-10 pb-36 pt-5 text-[#1c1b1b]">
-      <header className="mb-9 flex items-center justify-between">
+      <header className="mb-9 flex items-center">
         <button className="flex h-8 w-[116px] items-center" onClick={() => setStep("mode")} type="button">
           <Image
             alt="기온별플리"
@@ -499,9 +499,6 @@ export function CreateBoardClient({
             src="/images/gion-logo-transparent.png"
             width={116}
           />
-        </button>
-        <button className="text-[11px] font-bold tracking-[0.14em] text-[#8c8b89]" type="button">
-          KOR <span className="mx-2 font-normal text-[#c6c2c0]">|</span> ENG
         </button>
       </header>
 
@@ -536,7 +533,7 @@ export function CreateBoardClient({
           </div>
         ) : null}
         <Button
-          className="mx-auto flex h-16 w-full max-w-[356px] items-center justify-center gap-3 bg-[#171412] text-[13px] font-bold tracking-[0.12em] text-white shadow-[0_18px_40px_rgba(18,18,18,0.22)] hover:translate-y-0 hover:bg-[#171412]"
+          className="mx-auto flex h-16 w-full max-w-[356px] items-center justify-center gap-3 bg-[#171412] text-[15px] font-bold tracking-[-0.03em] text-white shadow-[0_18px_40px_rgba(18,18,18,0.22)] hover:translate-y-0 hover:bg-[#171412]"
           disabled={!canSave || isPending}
           onClick={handleSave}
         >

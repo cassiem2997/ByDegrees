@@ -27,7 +27,7 @@ function StyledPreviewTitle({ title }: { title: string }) {
     <h2 className="text-center text-[22px] leading-tight tracking-[-0.06em]">
       <span className="font-extrabold text-[#1c1b1b]">{mainTitle}</span>
       {nickname ? (
-        <span className="font-medium text-[#4f4a47]"> by {nickname}</span>
+        <span className="text-[70%] font-medium text-[#4f4a47]"> by {nickname}</span>
       ) : null}
     </h2>
   );
@@ -73,7 +73,7 @@ export function BoardPreview({
       <section className="w-full">
         <div className="space-y-4">
           <Input
-            className="h-auto rounded-none border-0 bg-transparent px-0 py-1 text-[21px] font-semibold tracking-[-0.05em] text-[#1c1b1b] shadow-none placeholder:text-[#1c1b1b] focus:border-0 focus:ring-0"
+            className="h-auto rounded-none border-0 bg-transparent px-0 py-1 text-center text-[21px] font-semibold tracking-[-0.05em] text-[#1c1b1b] shadow-none placeholder:text-[#1c1b1b] focus:border-0 focus:ring-0"
             onChange={(event) => onTitleChange?.(event.target.value)}
             placeholder={titlePlaceholder}
             readOnly={titleReadOnly}

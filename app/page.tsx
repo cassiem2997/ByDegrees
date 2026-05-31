@@ -8,7 +8,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-[#fcf8f7] text-[#1c1b1b]">
       <PageViewTracker metadata={{ page: "landing" }} />
       <div className="mx-auto flex min-h-screen w-full max-w-[450px] flex-col px-10">
-        <header className="flex items-center justify-between py-10">
+        <header className="flex items-center py-10">
           <Image
             alt="기온별플리"
             className="h-auto w-[132px]"
@@ -17,9 +17,6 @@ export default function HomePage() {
             src="/images/gion-logo-transparent.png"
             width={132}
           />
-          <button className="text-[17px] font-bold tracking-[0.12em] text-[#8c8b89]" type="button">
-            KOR | ENG
-          </button>
         </header>
 
         <section className="flex flex-1 flex-col items-center justify-center pb-28 text-center">
