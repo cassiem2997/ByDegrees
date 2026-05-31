@@ -490,7 +490,7 @@ export function CreateBoardClient({
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-[450px] px-10 pb-36 pt-5 text-[#1c1b1b]">
-      <header className="mb-9 flex items-center">
+      <header className="mb-7 flex items-center border-b border-[#e6dfdc] pb-5">
         <button className="flex h-8 w-[116px] items-center" onClick={() => setStep("mode")} type="button">
           <Image
             alt="기온별플리"
@@ -502,7 +502,7 @@ export function CreateBoardClient({
         </button>
       </header>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pt-2">
         <BoardPreview
           artistName={displayArtistName}
           brandText="© 2026 기온별플리 By Degrees. All rights reserved."
