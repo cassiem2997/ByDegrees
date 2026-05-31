@@ -70,21 +70,15 @@ export type BoardSummary = {
 
 export type AdminSummary = {
   visitors: {
-    daily: number;
-    weekly: number;
-    monthly: number;
+    current: number;
     cumulative: number;
   };
   imageSaves: {
-    daily: number;
-    weekly: number;
-    monthly: number;
+    current: number;
     cumulative: number;
   };
   shares: {
-    daily: number;
-    weekly: number;
-    monthly: number;
+    current: number;
     cumulative: number;
   };
   visitorCountries: Array<{ name: string; count: number }>;
