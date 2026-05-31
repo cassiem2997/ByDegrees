@@ -29,8 +29,10 @@ export default function HomePage() {
             width={948}
           />
 
-          <p className="mb-36 text-[21px] font-medium tracking-[-0.04em]">
-            음악으로 기억하는 나의 계절
+          <p className="mb-36 text-[21px] font-medium leading-[1.35] tracking-[-0.04em]">
+            음악으로 기록하는 여러분의
+            <br />
+            계절을 공유해주세요 🎧
           </p>
 
           <Link
