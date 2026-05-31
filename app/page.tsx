@@ -37,7 +37,7 @@ export default function HomePage() {
           </p>
 
           <Link
-            className="rounded-full bg-[#1a1a1a] px-16 py-7 text-[27px] font-extrabold tracking-[-0.04em] text-white shadow-[0_24px_45px_rgba(0,0,0,0.2)] transition active:scale-95"
+            className="flex h-16 w-full items-center justify-center rounded-full bg-[#1a1a1a] text-[22px] font-extrabold tracking-[-0.05em] text-white shadow-[0_24px_42px_rgba(0,0,0,0.16)] transition active:scale-95"
             href="/create"
           >
             시작하기

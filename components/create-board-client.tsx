@@ -10,6 +10,7 @@ import { SearchSongDialog } from "@/components/search-song-dialog";
 import { Button } from "@/components/ui/button";
 import { getOrCreateSessionId } from "@/lib/session";
 import { BoardRow, BoardSummary, MusicArtistResult, MusicTrackResult, TemperaturePreset } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type SelectionTarget = {
   presetId: string;
@@ -29,6 +30,25 @@ type CreateDraft = {
 const PREVIEW_STORAGE_KEY = "temptracks-preview-board";
 const CREATE_DRAFT_STORAGE_KEY = "temptracks-create-draft";
 const RESTORE_CREATE_STORAGE_KEY = "temptracks-restore-create";
+const STEP_TEXT_CLASS = "text-[13px] font-medium tracking-[0.18em] text-[#9d9895]";
+const STEP_BACK_BUTTON_CLASS = "-ml-2 flex h-9 w-9 items-center justify-center rounded-full text-[#77716e]";
+
+function StepTitle({
+  children,
+  className
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("relative flex min-h-[76px] items-center pl-6", className)}>
+      <div className="absolute bottom-0 left-0 top-0 w-[4px] rounded-full bg-[linear-gradient(180deg,#ff6b75,#ffc371,#86e3ce,#8a96d7,#ccabd8)] opacity-45" />
+      <h1 className="text-[29px] font-medium leading-[1.22] tracking-[-0.08em]">
+        {children}
+      </h1>
+    </div>
+  );
+}
 
 export function CreateBoardClient({
   presets
@@ -236,19 +256,24 @@ export function CreateBoardClient({
     return (
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[450px] flex-col overflow-hidden px-10 text-[#1c1b1b]">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_65%,rgba(255,195,113,0.18),transparent_36%),radial-gradient(circle_at_86%_42%,rgba(204,171,216,0.22),transparent_42%)]" />
-        <header className="relative z-10 flex justify-end py-7">
-          <p className="text-[16px] font-bold tracking-[0.18em] text-[#9d9895]">STEP 01 / 03</p>
+        <header className="relative z-10 flex h-[92px] items-center justify-between">
+          <button
+            aria-label="랜딩 페이지로 돌아가기"
+            className={STEP_BACK_BUTTON_CLASS}
+            onClick={() => router.push("/")}
+            type="button"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <p className={STEP_TEXT_CLASS}>STEP 01 / 03</p>
         </header>
 
-        <main className="relative z-10 flex flex-1 flex-col justify-center pb-8">
-          <div className="relative flex min-h-32 items-center pl-6">
-            <div className="absolute left-0 top-0 h-32 w-[4px] rounded-full bg-[linear-gradient(180deg,#ff6b75,#ffc371,#86e3ce,#8a96d7,#ccabd8)] opacity-45" />
-            <h1 className="text-[32px] font-medium leading-[1.25] tracking-[-0.08em]">
-              이름 또는 닉네임을
-              <br />
-              적어주세요
-            </h1>
-          </div>
+        <main className="relative z-10 flex flex-1 flex-col pt-20 pb-8">
+          <StepTitle>
+            이름 또는 닉네임을
+            <br />
+            적어주세요
+          </StepTitle>
 
           <label className="mt-10 block">
             <span className="sr-only">Nickname</span>
@@ -282,30 +307,31 @@ export function CreateBoardClient({
     return (
       <div className="relative mx-auto flex min-h-[100dvh] w-full max-w-[450px] flex-col overflow-hidden px-10 text-[#1c1b1b]">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(62,58,56,0.12),transparent_54%)]" />
-        <header className="relative z-10 flex justify-between py-7">
+        <header className="relative z-10 flex h-[92px] items-center justify-between">
           <button
             aria-label="이전 단계"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[#77716e]"
+            className={STEP_BACK_BUTTON_CLASS}
             onClick={() => setStep("nickname")}
             type="button"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <p className="text-[16px] font-bold tracking-[0.18em] text-[#9d9895]">STEP 02 / 03</p>
+          <p className={STEP_TEXT_CLASS}>STEP 02 / 03</p>
         </header>
 
-        <main className="relative z-10 flex flex-1 flex-col justify-center pb-8">
-          <h1 className="mb-12 text-[31px] font-medium leading-[1.22] tracking-[-0.08em]">
+        <main className="relative z-10 flex flex-1 flex-col pt-20 pb-8">
+          <StepTitle className="mb-12">
             플레이리스트를
             <br />
-            이렇게 구성하고 싶어요
-          </h1>
+            <span className="whitespace-nowrap">이렇게 구성하고 싶어요</span>
+          </StepTitle>
 
           <div className="space-y-4">
             <ArtistOption
               active={artistMode === "single"}
               icon={<User className="h-5 w-5" />}
-            label="모두 같은 아티스트의 곡으로"
+              label="모두 같은 아티스트의 곡으로"
+              labelClassName="-translate-x-[4pt]"
               onClick={() => {
                 setArtistMode("single");
                 setArtistName("");
@@ -327,11 +353,11 @@ export function CreateBoardClient({
 
         <footer className="relative z-10 pb-7">
           <Button
-            className="h-16 w-full gap-3 rounded-full bg-[#1a1a1a] text-[22px] font-extrabold tracking-[-0.05em] shadow-[0_24px_42px_rgba(0,0,0,0.16)]"
+            className="h-16 w-full gap-3 rounded-full bg-[#1a1a1a] text-[22px] font-extrabold tracking-[-0.05em] shadow-[0_24px_42px_rgba(0,0,0,0.16)] hover:translate-y-0 hover:bg-[#1a1a1a]"
             onClick={() => setStep(artistMode === "single" ? "artist" : "board")}
           >
             다음 단계로
-            <ArrowRight className="h-7 w-7" />
+            <ArrowRight className="h-8 w-8" />
           </Button>
         </footer>
       </div>
@@ -342,32 +368,29 @@ export function CreateBoardClient({
     return (
       <div className="relative mx-auto flex min-h-screen w-full max-w-[450px] flex-col overflow-hidden px-10 text-[#1c1b1b]">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_70%,rgba(255,195,113,0.15),transparent_36%),radial-gradient(circle_at_82%_38%,rgba(138,150,215,0.18),transparent_42%)]" />
-        <header className="relative z-10 flex justify-between py-10">
+        <header className="relative z-10 flex h-[92px] items-center justify-between">
           <button
             aria-label="이전 단계"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-[#77716e]"
+            className={STEP_BACK_BUTTON_CLASS}
             onClick={() => setStep("mode")}
             type="button"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <p className="text-[16px] font-bold tracking-[0.18em] text-[#9d9895]">STEP 03 / 03</p>
+          <p className={STEP_TEXT_CLASS}>STEP 03 / 03</p>
         </header>
 
-        <main className="relative z-10 flex flex-1 flex-col justify-center pb-20">
-          <div className="relative flex min-h-36 items-center pl-7">
-            <div className="absolute left-0 top-0 h-36 w-[4px] rounded-full bg-[linear-gradient(180deg,#ff6b75,#ffc371,#86e3ce,#8a96d7,#ccabd8)] opacity-45" />
-            <h1 className="text-[40px] font-medium leading-[1.25] tracking-[-0.08em]">
-              아티스트를
-              <br />
-              선택해주세요
-            </h1>
-          </div>
+        <main className="relative z-10 flex flex-1 flex-col pt-20 pb-20">
+          <StepTitle>
+            아티스트를
+            <br />
+            선택해주세요
+          </StepTitle>
 
-          <div className="mt-20 flex items-center border-b border-[#d8d3d1] pb-4">
-            <Search className="mr-3 h-5 w-5 shrink-0 text-[#9d9895]" />
+          <div className="mt-16 flex items-center border-b border-[#d8d3d1] pb-3">
+            <Search className="mr-2.5 h-4 w-4 shrink-0 text-[#9d9895]" />
             <input
-              className="min-w-0 flex-1 border-0 bg-transparent px-0 text-[24px] font-medium tracking-[-0.05em] text-[#1c1b1b] outline-none ring-0 placeholder:text-[#c8c2bf] focus:ring-0"
+              className="min-w-0 flex-1 border-0 bg-transparent px-0 text-[19px] font-medium tracking-[-0.05em] text-[#1c1b1b] outline-none ring-0 placeholder:text-[#c8c2bf] focus:ring-0"
               onChange={(event) => setArtistQuery(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") void handleArtistSearch();
@@ -376,7 +399,7 @@ export function CreateBoardClient({
               value={artistQuery}
             />
             <Button
-              className="ml-3 h-10 shrink-0 px-4 py-0 text-xs"
+              className="ml-2.5 h-8 shrink-0 px-3 py-0 text-[10px]"
               disabled={artistSearchLoading || artistQuery.trim().length === 0}
               onClick={handleArtistSearch}
               type="button"
@@ -385,7 +408,7 @@ export function CreateBoardClient({
             </Button>
           </div>
 
-          <div className="mt-8 min-h-[270px] space-y-4">
+          <div className="mt-8 max-h-[270px] min-h-[270px] space-y-4 overflow-y-auto pr-2 [scrollbar-color:#c8c2bf_transparent] [scrollbar-width:thin]">
             {artistSearchLoading ? (
               <div className="flex items-center justify-center rounded-xl border border-[#ebe7e6] bg-white/45 py-12 text-[#77716e]">
                 <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
@@ -402,12 +425,12 @@ export function CreateBoardClient({
             {!artistSearchLoading &&
               artistResults.map((artist) => (
                 <button
-                  className="flex min-h-[72px] w-full items-center gap-4 text-left transition active:scale-[0.98]"
+                  className="flex min-h-[50px] w-full items-center gap-3 text-left transition active:scale-[0.98]"
                   key={artist.providerArtistId}
                   onClick={() => void handleArtistSelect(artist)}
                   type="button"
                 >
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full bg-[#ebe7e6]">
+                  <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-[#ebe7e6]">
                     {artist.imageUrl ? (
                       <img
                         alt={artist.name}
@@ -416,12 +439,12 @@ export function CreateBoardClient({
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-[#8c8885]">
-                        <User className="h-6 w-6" />
+                        <User className="h-4 w-4" />
                       </div>
                     )}
                   </div>
-                  <div className="flex min-h-[72px] min-w-0 flex-1 items-center border-b border-[#ebe7e6]">
-                    <p className="truncate text-[18px] font-extrabold tracking-[-0.04em] text-[#1c1b1b]">
+                  <div className="flex min-h-[50px] min-w-0 flex-1 items-center border-b border-[#ebe7e6]">
+                    <p className="truncate text-[13px] font-extrabold tracking-[-0.04em] text-[#1c1b1b]">
                       {artist.name}
                     </p>
                   </div>
@@ -497,17 +520,19 @@ function ArtistOption({
   active,
   icon,
   label,
+  labelClassName,
   onClick
 }: {
   active: boolean;
   icon: ReactNode;
   label: string;
+  labelClassName?: string;
   onClick: () => void;
 }) {
   return (
     <button
       className={[
-        "flex min-h-[88px] w-full items-center justify-between gap-3 rounded-[20px] border px-4 text-left shadow-[0_12px_28px_rgba(0,0,0,0.05)] transition active:scale-[0.98]",
+        "flex min-h-[88px] w-full items-center gap-3 rounded-[20px] border px-4 text-left shadow-[0_12px_28px_rgba(0,0,0,0.05)] transition active:scale-[0.98]",
         active
           ? "border-[#ded9d7] bg-white/78 text-[#1c1b1b]"
           : "border-white/55 bg-white/34 text-[#77716e] opacity-70"
@@ -515,15 +540,23 @@ function ArtistOption({
       onClick={onClick}
       type="button"
     >
-      <span className="flex min-w-0 flex-1 items-center gap-3">
+      <span className="grid min-w-0 flex-1 grid-cols-[40px_1fr] items-center gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ebe8e6] text-[#4c4b49]">
-          {icon}
+          {active ? <CheckCircle className="h-5 w-5 fill-[#4c4b49] text-white" /> : (
+            <span className="flex h-5 w-5 items-center justify-center">
+              {icon}
+            </span>
+          )}
         </span>
-        <span className="min-w-0 pr-1 text-[17px] font-semibold leading-tight tracking-[-0.06em]">
+        <span
+          className={cn(
+            "min-w-0 whitespace-nowrap text-[16px] font-semibold leading-tight tracking-[-0.06em]",
+            labelClassName
+          )}
+        >
           {label}
         </span>
       </span>
-      {active ? <CheckCircle className="h-6 w-6 shrink-0 fill-[#4c4b49] text-white" /> : null}
     </button>
   );
 }

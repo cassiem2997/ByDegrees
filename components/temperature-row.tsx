@@ -32,10 +32,10 @@ export function TemperatureRow({
     return (
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <h3 className={cn("text-[28px] font-light leading-none tracking-[-0.05em]", style.text)}>
+          <h3 className={cn("text-[20px] font-light leading-none tracking-[-0.05em]", style.text)}>
             {preset.label}
           </h3>
-          <span aria-hidden="true" className="text-[24px] leading-none">
+          <span aria-hidden="true" className="text-[17px] leading-none">
             {emoji}
           </span>
         </div>

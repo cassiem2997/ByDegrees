@@ -89,7 +89,7 @@ export function BoardPreview({
           ) : null}
         </div>
 
-        <div className="relative mt-11 pl-8">
+        <div className="relative mt-8 pl-8">
           <TemperatureBar presets={presets} variant="editor" />
           <div className="space-y-8">
             {rows.map((row) => (
@@ -117,7 +117,7 @@ export function BoardPreview({
 
   return (
     <section className="flex aspect-[9/16] w-full flex-col overflow-hidden bg-[#fcf8f7] px-4 pb-1 pt-3">
-      <div className="mx-auto mb-2 w-[292px]">
+      <div className="mx-auto mb-[6px] w-[292px]">
         <StyledPreviewTitle title={title} />
       </div>
 
@@ -130,7 +130,7 @@ export function BoardPreview({
           {rows.map((row) => (
             <div
               className={cn(
-                "flex h-[68px] flex-col items-end pt-0.5 text-right text-[11.5px] font-light leading-none tracking-[-0.05em]",
+                "flex h-[68px] flex-col items-end pt-0.5 text-right text-[11.5px] font-[350] leading-none tracking-[-0.05em]",
                 getTemperatureMoodStyle(row.preset.sortOrder).text
               )}
               key={`${row.preset.id}-label`}
