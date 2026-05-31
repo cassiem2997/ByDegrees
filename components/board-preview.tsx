@@ -169,6 +169,7 @@ export function BoardPreview({
                             getPreviewSongTitleClass(song.title)
                           ].join(" ")}
                           style={{
+                            WebkitTextStroke: "0.45px rgba(0,0,0,0.95)",
                             textShadow:
                               "-1px -1px 0 rgba(0,0,0,0.9), 0 -1px 0 rgba(0,0,0,0.9), 1px -1px 0 rgba(0,0,0,0.9), -1px 0 0 rgba(0,0,0,0.9), 1px 0 0 rgba(0,0,0,0.9), -1px 1px 0 rgba(0,0,0,0.9), 0 1px 0 rgba(0,0,0,0.9), 1px 1px 0 rgba(0,0,0,0.9)"
                           }}

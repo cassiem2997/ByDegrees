@@ -1,41 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
 import { BoardPreview } from "@/components/board-preview";
 import { ShareChannelButtons } from "@/components/share-channel-buttons";
 import { Button } from "@/components/ui/button";
-import { captureElementAsPngDataUrl } from "@/lib/image-file";
+import { shareToKakao } from "@/lib/kakao-share";
+import { generateBoardPreviewDataUrl } from "@/lib/preview-canvas";
 import { getOrCreateSessionId } from "@/lib/session";
 import { BoardSummary } from "@/lib/types";
 
 const PREVIEW_STORAGE_KEY = "temptracks-preview-board";
 const PREVIEW_CAPTURE_WIDTH = 370;
 const PREVIEW_CAPTURE_HEIGHT = Math.round((PREVIEW_CAPTURE_WIDTH * 16) / 9);
-
-async function waitForPreviewAssets(element: HTMLElement) {
-  const images = Array.from(element.querySelectorAll("img"));
-
-  await Promise.all(
-    images.map((image) => {
-      if (image.complete) return Promise.resolve();
-
-      return new Promise<void>((resolve) => {
-        const timeout = window.setTimeout(resolve, 1500);
-        const finish = () => {
-          window.clearTimeout(timeout);
-          resolve();
-        };
-
-        image.addEventListener("load", finish, { once: true });
-        image.addEventListener("error", finish, { once: true });
-      });
-    })
-  );
-}
 
 function buildShareCaption(boardTitle: string, artistName?: string) {
   const cleanArtistName =
@@ -55,8 +34,18 @@ function buildShareCaption(boardTitle: string, artistName?: string) {
   return `${boardTitle}\n${tags.join(" ")}`;
 }
 
-function buildXIntentUrl(text: string) {
-  return `https://x.com/intent/tweet?${new URLSearchParams({ text }).toString()}`;
+function getAppShareUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+}
+
+function buildXIntentUrl(text: string, url?: string) {
+  const params = new URLSearchParams({ text });
+
+  if (url) {
+    params.set("url", url);
+  }
+
+  return `https://x.com/intent/tweet?${params.toString()}`;
 }
 
 async function logClientEvent(eventType: string, metadata: Record<string, unknown>) {
@@ -97,36 +86,23 @@ export function LocalPreviewClient() {
   }, []);
 
   useEffect(() => {
-    if (!board || previewImageUrl) return;
+    if (!board || previewImageUrl || previewImageError) return;
 
     let canceled = false;
 
-    requestAnimationFrame(async () => {
-      const element = document.getElementById("board-capture");
-      if (!element) return;
-
-      await waitForPreviewAssets(element);
-      if (canceled) return;
-
-      captureElementAsPngDataUrl(element)
-        .then((dataUrl) => {
-          if (!canceled) {
-            setPreviewImageUrl(dataUrl);
-            setPreviewImageError("");
-          }
-        })
-        .catch((error) => {
-          console.error("Failed to create preview image", error);
-          if (!canceled) {
-            setPreviewImageError("이미지 변환이 늦어지고 있어요. 현재 미리보기를 길게 눌러 저장해보세요.");
-          }
-        });
-    });
+    generateBoardPreviewDataUrl(board)
+      .then((dataUrl) => {
+        if (!canceled) setPreviewImageUrl(dataUrl);
+      })
+      .catch((error) => {
+        console.error("Failed to create preview image", error);
+        if (!canceled) setPreviewImageError("이미지를 준비하지 못했어요. 새로고침 후 다시 시도해주세요.");
+      });
 
     return () => {
       canceled = true;
     };
-  }, [board, previewImageUrl]);
+  }, [board, previewImageError, previewImageUrl]);
 
   useEffect(() => {
     if (!showSaveHint) return;
@@ -160,61 +136,52 @@ export function LocalPreviewClient() {
 
   return (
     <main className="min-h-screen bg-[#fcf8f7] text-[#1c1b1b]">
-      <div className="mx-auto min-h-screen w-full max-w-[450px] px-6 pb-24 pt-8 sm:px-10">
-        <header className="mb-14 flex items-center justify-between">
-          <Image
-            alt="기온별플리"
-            className="h-auto w-[124px]"
-            height={38}
-            src="/images/gion-logo-transparent.png"
-            width={124}
-          />
-          <button className="text-[13px] font-bold tracking-[0.18em] text-[#8c8b89]" type="button">
-            KOR <span className="mx-2 font-normal text-[#c6c2c0]">|</span> ENG
-          </button>
-        </header>
-
+      <div className="mx-auto min-h-screen w-full max-w-[450px] pb-24 pt-6">
         {previewImageUrl ? (
           <img
             alt={`${board.title} 미리보기 이미지`}
-            className="w-full rounded-[2px]"
+            className="mx-auto w-full max-w-[370px] rounded-[2px]"
             src={previewImageUrl}
           />
+        ) : previewImageError ? (
+          <p className="mx-auto max-w-[320px] rounded-[20px] bg-white/70 p-5 text-center text-sm font-semibold text-[#ba1a1a]">
+            {previewImageError}
+          </p>
         ) : (
-          <div className="mx-auto w-full max-w-[370px]">
-            <div
-              id="board-capture"
-              style={{
-                height: PREVIEW_CAPTURE_HEIGHT,
-                width: PREVIEW_CAPTURE_WIDTH
-              }}
-            >
-              <BoardPreview
-                artistName={board.artistName}
-                rows={board.rows}
-                title={board.title}
-              />
-            </div>
-            {previewImageError ? (
-              <p className="mt-3 text-center text-xs font-semibold text-[#8f8986]">
-                {previewImageError}
-              </p>
-            ) : null}
+          <div className="mx-auto flex aspect-[9/16] w-full max-w-[370px] items-center justify-center bg-white/35 text-[13px] font-semibold text-[#b7b2af]">
+            미리보기 이미지를 준비 중이에요.
           </div>
         )}
+        <div className="pointer-events-none fixed -left-[9999px] top-0 w-[370px] overflow-hidden">
+          <div
+            className="bg-[#fcf8f7]"
+            id="board-capture"
+            style={{
+              height: PREVIEW_CAPTURE_HEIGHT,
+              width: PREVIEW_CAPTURE_WIDTH
+            }}
+          >
+            <BoardPreview
+              artistName={board.artistName}
+              rows={board.rows}
+              title={board.title}
+            />
+          </div>
+        </div>
 
-        <div className="relative mt-10">
+        <div className="relative mt-8 px-6 sm:px-10">
           {showSaveHint ? (
-            <p className="pointer-events-none absolute bottom-[calc(100%+12px)] left-1/2 z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.86)] px-4 py-2.5 text-center text-xs font-semibold text-[#1c1b1b] opacity-100 shadow-[0_12px_24px_rgba(0,0,0,0.12)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[7px] after:border-t-[7px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.86)]">
-              위 이미지를 길게 눌러 저장하세요.
+            <p className="pointer-events-none absolute bottom-[calc(100%+16px)] left-1/2 z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.86)] px-5 py-3 text-center text-[14px] font-semibold leading-[1.35] text-[#1c1b1b] opacity-100 shadow-[0_14px_28px_rgba(0,0,0,0.13)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[14px] after:border-t-[14px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.86)]">
+              위 이미지를 길게 눌러
+              <br />
+              저장하세요.
             </p>
           ) : null}
           <LocalPreviewActions
             artistName={board.artistName}
             boardTitle={board.title}
-            captureId="board-capture"
             onSaveHint={() => setShowSaveHint(true)}
-            previewImageReady={Boolean(previewImageUrl) || Boolean(previewImageError)}
+            previewImageReady={Boolean(previewImageUrl)}
             showSaveHint={showSaveHint}
           />
         </div>
@@ -226,19 +193,18 @@ export function LocalPreviewClient() {
 function LocalPreviewActions({
   artistName,
   boardTitle,
-  captureId,
   onSaveHint,
   previewImageReady,
   showSaveHint
 }: {
   artistName: string;
   boardTitle: string;
-  captureId: string;
   onSaveHint: () => void;
   previewImageReady: boolean;
   showSaveHint: boolean;
 }) {
   const [saveError, setSaveError] = useState("");
+  const appShareUrl = getAppShareUrl();
   const shareCaption = buildShareCaption(boardTitle, artistName);
 
   async function copyShareCaption() {
@@ -262,25 +228,6 @@ function LocalPreviewActions({
     });
   }
 
-  async function handleShare() {
-    const canUseNativeShare = "share" in navigator;
-
-    if (canUseNativeShare) {
-      await navigator.share({
-        title: boardTitle,
-        text: shareCaption
-      });
-    } else {
-      await copyShareCaption();
-    }
-
-    await logClientEvent("share", {
-      board_id: "local-preview",
-      board_slug: "preview",
-      channel: canUseNativeShare ? "web_share" : "preview"
-    });
-  }
-
   async function handleInstagramShare() {
     await handleDownload();
     await copyShareCaption();
@@ -291,8 +238,35 @@ function LocalPreviewActions({
     });
   }
 
+  async function handleKakaoShare() {
+    const didOpenKakaoShare = await shareToKakao({
+      title: boardTitle,
+      description: shareCaption,
+      url: appShareUrl,
+      imageUrl: `${window.location.origin}/images/gion-logo-transparent.png`
+    });
+
+    if (!didOpenKakaoShare) {
+      if ("share" in navigator) {
+        await navigator.share({
+          title: boardTitle,
+          text: shareCaption,
+          url: appShareUrl
+        });
+      } else {
+        await copyShareCaption();
+      }
+    }
+
+    await logClientEvent("share", {
+      board_id: "local-preview",
+      board_slug: "preview",
+      channel: didOpenKakaoShare ? "kakao" : "kakao_fallback"
+    });
+  }
+
   async function handleXShare() {
-    window.open(buildXIntentUrl(shareCaption), "_blank", "noopener,noreferrer");
+    window.open(buildXIntentUrl(shareCaption, appShareUrl), "_blank", "noopener,noreferrer");
     await logClientEvent("share", {
       board_id: "local-preview",
       board_slug: "preview",
@@ -314,7 +288,7 @@ function LocalPreviewActions({
       ) : null}
       <ShareChannelButtons
         onInstagramShare={handleInstagramShare}
-        onKakaoShare={handleShare}
+        onKakaoShare={handleKakaoShare}
         onXShare={handleXShare}
       />
     </div>
