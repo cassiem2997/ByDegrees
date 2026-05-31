@@ -26,7 +26,11 @@ export async function logEvent(
       "insert into events (event_type, session_id, metadata) values ($1, $2, $3::jsonb)",
       [eventType, sessionId, JSON.stringify(metadata)]
     );
-  } catch {
+  } catch (error) {
+    console.error("Failed to log analytics event", {
+      eventType,
+      error
+    });
     return null;
   }
 }
@@ -167,7 +171,8 @@ export async function getAdminSummary(days = 7): Promise<AdminSummary> {
         shares: entry.shares
       }))
     };
-  } catch {
+  } catch (error) {
+    console.error("Failed to load admin analytics summary", error);
     return fallback;
   }
 }

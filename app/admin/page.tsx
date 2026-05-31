@@ -5,6 +5,9 @@ import { SiteShell } from "@/components/layout/site-shell";
 import { getAdminSummary } from "@/lib/analytics";
 import { formatShortNumber } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function MetricCard({
   title,
   values
