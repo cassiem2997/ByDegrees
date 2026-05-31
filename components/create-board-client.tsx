@@ -76,12 +76,12 @@ export function CreateBoardClient({
   const title =
     artistMode === "single"
       ? artistName.trim().length > 0
-        ? `기온별 ${artistName.trim()} by ${nickname.trim()}`
+        ? `기온별 ${artistName.trim()} by ${nickname.trim()} 🎶`
         : nickname.trim().length > 0
-          ? `기온별 플레이리스트 by ${nickname.trim()}`
+          ? `기온별 플레이리스트 by ${nickname.trim()} 🎶`
           : ""
       : nickname.trim().length > 0
-        ? `기온별 플리 by ${nickname.trim()}`
+        ? `기온별 플리 by ${nickname.trim()} 🎶`
       : "";
   const emptyRowCount = rows.filter((row) => row.songs.every((song) => !song)).length;
 

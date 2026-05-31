@@ -19,12 +19,24 @@ function compactPreviewSongs(songs: BoardSongSlot[]) {
   return [filledSongs[0] ?? null, filledSongs[1] ?? null, filledSongs[2] ?? null];
 }
 
+function getPreviewTitleClass(title: string) {
+  if (title.length <= 18) return "text-[22px]";
+  if (title.length <= 26) return "text-[19px]";
+  return "text-[16px]";
+}
+
 function StyledPreviewTitle({ title }: { title: string }) {
   const displayTitle = title || "기온별 플리";
   const [mainTitle, nickname] = displayTitle.split(" by ");
 
   return (
-    <h2 className="text-center text-[22px] leading-tight tracking-[-0.06em]">
+    <h2
+      className={cn(
+        "truncate text-center leading-tight tracking-[-0.06em]",
+        getPreviewTitleClass(displayTitle)
+      )}
+      title={displayTitle}
+    >
       <span className="font-extrabold text-[#1c1b1b]">{mainTitle}</span>
       {nickname ? (
         <span className="text-[70%] font-medium text-[#4f4a47]"> by {nickname}</span>

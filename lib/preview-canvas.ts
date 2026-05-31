@@ -95,25 +95,39 @@ function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
   const displayTitle = title || "기온별 플리";
   const [mainTitle, nickname] = displayTitle.split(" by ");
   const byText = nickname ? ` by ${nickname}` : "";
-  const mainTitleSize = 22;
+  const maxTitleWidth = 332;
+  const mainTitleSize =
+    displayTitle.length <= 18 ? 22 : displayTitle.length <= 26 ? 19 : 16;
   const byTextSize = mainTitleSize * 0.7;
 
   ctx.textBaseline = "alphabetic";
   ctx.font = titleFont(mainTitleSize, 800);
-  const mainWidth = ctx.measureText(mainTitle).width;
+  let nextMainTitle = mainTitle;
+  let mainWidth = ctx.measureText(nextMainTitle).width;
   ctx.font = titleFont(byTextSize, 500);
-  const byWidth = ctx.measureText(byText).width;
+  const nextByText = byText;
+  const byWidth = ctx.measureText(nextByText).width;
+
+  ctx.font = titleFont(mainTitleSize, 800);
+  while (
+    nextMainTitle.length > 1 &&
+    mainWidth + byWidth > maxTitleWidth
+  ) {
+    nextMainTitle = `${nextMainTitle.slice(0, -2)}…`;
+    mainWidth = ctx.measureText(nextMainTitle).width;
+  }
+
   let x = (370 - mainWidth - byWidth) / 2;
 
   ctx.font = titleFont(mainTitleSize, 800);
   ctx.fillStyle = "#1c1b1b";
-  ctx.fillText(mainTitle, x, 32);
+  ctx.fillText(nextMainTitle, x, 32);
   x += mainWidth;
 
-  if (byText) {
+  if (nextByText) {
     ctx.font = titleFont(byTextSize, 500);
     ctx.fillStyle = "#4f4a47";
-    ctx.fillText(byText, x, 32);
+    ctx.fillText(nextByText, x, 32);
   }
 }
 
