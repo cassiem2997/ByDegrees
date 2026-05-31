@@ -6,8 +6,8 @@ import { Download } from "lucide-react";
 import { ShareChannelButtons } from "@/components/share-channel-buttons";
 import { Button } from "@/components/ui/button";
 import { captureElementAsPngDataUrl } from "@/lib/image-file";
-import { shareToKakao } from "@/lib/kakao-share";
 import { getOrCreateSessionId } from "@/lib/session";
+import { absoluteUrl } from "@/lib/utils";
 
 async function logClientEvent(eventType: string, metadata: Record<string, unknown>) {
   const sessionId = getOrCreateSessionId();
@@ -43,6 +43,15 @@ function buildShareCaption(boardTitle: string, artistName?: string, boardUrl?: s
   return [boardTitle, tags.join(" "), boardUrl].filter(Boolean).join("\n");
 }
 
+function buildXShareText(boardTitle: string, artistName?: string) {
+  const caption = buildShareCaption(boardTitle, artistName);
+
+  return caption.replace(boardTitle, `[${boardTitle}]`).replace(
+    "\n",
+    "\n음악으로 기록하는 여러분의 계절도 공유해주세요 🎧\n"
+  );
+}
+
 function buildXIntentUrl(text: string, url?: string) {
   const params = new URLSearchParams({ text });
 
@@ -68,20 +77,9 @@ export function ShareActions({
 }) {
   const [savedImageUrl, setSavedImageUrl] = useState("");
   const [saveError, setSaveError] = useState("");
-  const boardUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/boards/${boardSlug}`
-      : `/boards/${boardSlug}`;
-  const shareCaption = buildShareCaption(boardTitle, artistName, boardUrl);
-  const twitterIntentUrl = buildXIntentUrl(
-    buildShareCaption(boardTitle, artistName),
-    boardUrl
-  );
-
-  async function copyShareCaption() {
-    if (!navigator.clipboard) return;
-    await navigator.clipboard.writeText(shareCaption);
-  }
+  const [linkCopied, setLinkCopied] = useState(false);
+  const boardUrl = absoluteUrl(`/boards/${boardSlug}`);
+  const twitterIntentUrl = buildXIntentUrl(buildXShareText(boardTitle, artistName), boardUrl);
 
   async function handleDownload() {
     const element = document.getElementById(captureId);
@@ -112,47 +110,18 @@ export function ShareActions({
     });
   }
 
-  async function handleInstagramShare() {
-    await handleDownload();
-    await copyShareCaption();
-    await logClientEvent("share", {
-      board_id: boardId,
-      board_slug: boardSlug,
-      channel: "instagram_caption"
-    });
-  }
-
-  async function handleKakaoShare() {
-    const didOpenKakaoShare = await shareToKakao({
-      title: boardTitle,
-      description: shareCaption,
-      url: boardUrl,
-      imageUrl: `${window.location.origin}/images/gion-logo-transparent.png`
-    });
-
-    if (didOpenKakaoShare) {
-      await logClientEvent("share", {
-        board_id: boardId,
-        board_slug: boardSlug,
-        channel: "kakao"
-      });
-      return;
-    }
-
-    if ("share" in navigator) {
-      await navigator.share({
-        title: boardTitle,
-        text: shareCaption,
-        url: boardUrl
-      });
-    } else {
-      await copyShareCaption();
-    }
+  async function handleCopyLink() {
+    if (!navigator.clipboard) return;
+    await navigator.clipboard.writeText(boardUrl);
+    setLinkCopied(true);
+    window.setTimeout(() => {
+      setLinkCopied(false);
+    }, 1600);
 
     await logClientEvent("share", {
       board_id: boardId,
       board_slug: boardSlug,
-      channel: "kakao_fallback"
+      channel: "copy_link"
     });
   }
 
@@ -181,10 +150,14 @@ export function ShareActions({
         </div>
       ) : null}
       <ShareChannelButtons
-        onInstagramShare={handleInstagramShare}
-        onKakaoShare={handleKakaoShare}
+        onCopyLink={handleCopyLink}
         onXShare={handleTwitterShare}
       />
+      {linkCopied ? (
+        <p className="text-center text-xs font-semibold text-[#4f4a47]">
+          링크가 복사되었습니다.
+        </p>
+      ) : null}
     </div>
   );
 }

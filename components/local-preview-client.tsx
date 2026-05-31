@@ -2,17 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Link2 } from "lucide-react";
 
 import { BoardPreview } from "@/components/board-preview";
-import { ShareChannelButtons } from "@/components/share-channel-buttons";
 import { Button } from "@/components/ui/button";
-import { shareToKakao } from "@/lib/kakao-share";
 import { generateBoardPreviewDataUrl } from "@/lib/preview-canvas";
 import { getOrCreateSessionId } from "@/lib/session";
 import { BoardSummary } from "@/lib/types";
 
 const PREVIEW_STORAGE_KEY = "temptracks-preview-board";
+const CREATE_DRAFT_STORAGE_KEY = "temptracks-create-draft";
+const RESTORE_CREATE_STORAGE_KEY = "temptracks-restore-create";
 const PREVIEW_CAPTURE_WIDTH = 370;
 const PREVIEW_CAPTURE_HEIGHT = Math.round((PREVIEW_CAPTURE_WIDTH * 16) / 9);
 
@@ -32,6 +32,15 @@ function buildShareCaption(boardTitle: string, artistName?: string) {
   ].filter(Boolean);
 
   return `${boardTitle}\n${tags.join(" ")}`;
+}
+
+function buildXShareText(boardTitle: string, artistName?: string) {
+  const caption = buildShareCaption(boardTitle, artistName);
+
+  return caption.replace(boardTitle, `[${boardTitle}]`).replace(
+    "\n",
+    "\n음악으로 기록하는 여러분의 계절도 공유해주세요 🎧\n"
+  );
 }
 
 function getAppShareUrl() {
@@ -70,6 +79,7 @@ export function LocalPreviewClient() {
   const [previewImageUrl, setPreviewImageUrl] = useState("");
   const [previewImageError, setPreviewImageError] = useState("");
   const [showSaveHint, setShowSaveHint] = useState(false);
+  const [showLinkCopiedToast, setShowLinkCopiedToast] = useState(false);
 
   useEffect(() => {
     const rawBoard = window.sessionStorage.getItem(PREVIEW_STORAGE_KEY);
@@ -113,6 +123,16 @@ export function LocalPreviewClient() {
 
     return () => window.clearTimeout(timeout);
   }, [showSaveHint]);
+
+  useEffect(() => {
+    if (!showLinkCopiedToast) return;
+
+    const timeout = window.setTimeout(() => {
+      setShowLinkCopiedToast(false);
+    }, 1600);
+
+    return () => window.clearTimeout(timeout);
+  }, [showLinkCopiedToast]);
 
   if (!loaded) {
     return <div className="min-h-screen bg-[#fcf8f7]" />;
@@ -171,19 +191,25 @@ export function LocalPreviewClient() {
 
         <div className="relative mt-8 px-6 sm:px-10">
           {showSaveHint ? (
-            <p className="pointer-events-none absolute bottom-[calc(100%+16px)] left-1/2 z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.86)] px-5 py-3 text-center text-[14px] font-semibold leading-[1.35] text-[#1c1b1b] opacity-100 shadow-[0_14px_28px_rgba(0,0,0,0.13)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[14px] after:border-t-[14px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.86)]">
-              위 이미지를 길게 눌러
+            <p className="pointer-events-none absolute bottom-[calc(100%-4px)] left-[calc(16.666667%+1rem)] z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.86)] px-5 py-3 text-center text-[14px] font-semibold leading-[1.35] text-[#1c1b1b] opacity-100 shadow-[0_14px_28px_rgba(0,0,0,0.13)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[14px] after:border-t-[14px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.86)]">
+              위 이미지를 길게 👆
               <br />
-              저장하세요.
+              눌러 저장해주세요.
             </p>
           ) : null}
           <LocalPreviewActions
             artistName={board.artistName}
             boardTitle={board.title}
+            onLinkCopied={() => setShowLinkCopiedToast(true)}
             onSaveHint={() => setShowSaveHint(true)}
             previewImageReady={Boolean(previewImageUrl)}
             showSaveHint={showSaveHint}
           />
+          {showLinkCopiedToast ? (
+            <p className="pointer-events-none absolute left-1/2 top-[calc(100%+12px)] z-10 -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.9)] px-4 py-2 text-center text-[13px] font-semibold text-[#1c1b1b] shadow-[0_12px_24px_rgba(0,0,0,0.12)] backdrop-blur-sm">
+              링크가 복사되었습니다.
+            </p>
+          ) : null}
         </div>
       </div>
     </main>
@@ -193,24 +219,20 @@ export function LocalPreviewClient() {
 function LocalPreviewActions({
   artistName,
   boardTitle,
+  onLinkCopied,
   onSaveHint,
   previewImageReady,
   showSaveHint
 }: {
   artistName: string;
   boardTitle: string;
+  onLinkCopied: () => void;
   onSaveHint: () => void;
   previewImageReady: boolean;
   showSaveHint: boolean;
 }) {
   const [saveError, setSaveError] = useState("");
   const appShareUrl = getAppShareUrl();
-  const shareCaption = buildShareCaption(boardTitle, artistName);
-
-  async function copyShareCaption() {
-    if (!navigator.clipboard) return;
-    await navigator.clipboard.writeText(shareCaption);
-  }
 
   async function handleDownload() {
     if (!previewImageReady) {
@@ -228,45 +250,24 @@ function LocalPreviewActions({
     });
   }
 
-  async function handleInstagramShare() {
-    await handleDownload();
-    await copyShareCaption();
-    await logClientEvent("share", {
-      board_id: "local-preview",
-      board_slug: "preview",
-      channel: "instagram_caption"
-    });
-  }
-
-  async function handleKakaoShare() {
-    const didOpenKakaoShare = await shareToKakao({
-      title: boardTitle,
-      description: shareCaption,
-      url: appShareUrl,
-      imageUrl: `${window.location.origin}/images/gion-logo-transparent.png`
-    });
-
-    if (!didOpenKakaoShare) {
-      if ("share" in navigator) {
-        await navigator.share({
-          title: boardTitle,
-          text: shareCaption,
-          url: appShareUrl
-        });
-      } else {
-        await copyShareCaption();
-      }
-    }
+  async function handleCopyLink() {
+    if (!navigator.clipboard) return;
+    await navigator.clipboard.writeText(appShareUrl);
+    onLinkCopied();
 
     await logClientEvent("share", {
       board_id: "local-preview",
       board_slug: "preview",
-      channel: didOpenKakaoShare ? "kakao" : "kakao_fallback"
+      channel: "copy_link"
     });
   }
 
   async function handleXShare() {
-    window.open(buildXIntentUrl(shareCaption, appShareUrl), "_blank", "noopener,noreferrer");
+    window.open(
+      buildXIntentUrl(buildXShareText(boardTitle, artistName), appShareUrl),
+      "_blank",
+      "noopener,noreferrer"
+    );
     await logClientEvent("share", {
       board_id: "local-preview",
       board_slug: "preview",
@@ -274,23 +275,54 @@ function LocalPreviewActions({
     });
   }
 
+  function handleCreateNew() {
+    window.sessionStorage.removeItem(PREVIEW_STORAGE_KEY);
+    window.sessionStorage.removeItem(CREATE_DRAFT_STORAGE_KEY);
+    window.sessionStorage.removeItem(RESTORE_CREATE_STORAGE_KEY);
+    window.location.assign("/create");
+  }
+
   return (
     <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-2.5">
+        <Button
+          className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
+          onClick={handleDownload}
+          type="button"
+        >
+          <Download className="h-4 w-4" />
+          저장
+        </Button>
+        <Button
+          className="h-[52px] gap-1.5 rounded-full bg-[#1a1a1a] px-2 text-[13px] font-bold tracking-[-0.03em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
+          onClick={handleXShare}
+          type="button"
+        >
+          <span aria-hidden="true" className="text-[17px] leading-none">
+            X
+          </span>
+          X로 공유
+        </Button>
+        <Button
+          className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
+          onClick={handleCopyLink}
+          type="button"
+        >
+          <Link2 className="h-4 w-4" />
+          링크로 공유
+        </Button>
+      </div>
       <Button
-        className="h-16 w-full gap-3 rounded-full bg-[#1a1a1a] text-[15px] font-bold tracking-[-0.03em] text-white shadow-[0_18px_30px_rgba(0,0,0,0.18)] hover:translate-y-0 hover:bg-[#1a1a1a]"
-        onClick={handleDownload}
+        className="h-14 w-full rounded-full border border-[#d8d2ce] bg-transparent text-[14px] font-bold tracking-[-0.03em] text-[#4f4a47] shadow-none hover:translate-y-0 hover:bg-white/45"
+        onClick={handleCreateNew}
+        type="button"
+        variant="secondary"
       >
-        <Download className="h-5 w-5" />
-        내 기온별플리 저장하기
+        새로 만들기
       </Button>
       {saveError ? (
         <p className="text-center text-xs font-medium text-[#ba1a1a]">{saveError}</p>
       ) : null}
-      <ShareChannelButtons
-        onInstagramShare={handleInstagramShare}
-        onKakaoShare={handleKakaoShare}
-        onXShare={handleXShare}
-      />
     </div>
   );
 }
