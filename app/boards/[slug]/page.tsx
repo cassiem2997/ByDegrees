@@ -20,10 +20,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${board.title} | By Degrees`,
+    title: `${board.title} | 기온별플리`,
     description: `${board.artistName}의 기온별 팬메이드 플레이리스트`,
     openGraph: {
-      title: `${board.title} | By Degrees`,
+      title: `${board.title} | 기온별플리`,
       description: `${board.artistName}의 기온별 팬메이드 플레이리스트`,
       images: [absoluteUrl(`/boards/${slug}/opengraph-image`)]
     }
