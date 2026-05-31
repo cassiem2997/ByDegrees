@@ -13,6 +13,29 @@ import { getOrCreateSessionId } from "@/lib/session";
 import { BoardSummary } from "@/lib/types";
 
 const PREVIEW_STORAGE_KEY = "temptracks-preview-board";
+const PREVIEW_CAPTURE_WIDTH = 370;
+const PREVIEW_CAPTURE_HEIGHT = Math.round((PREVIEW_CAPTURE_WIDTH * 16) / 9);
+
+async function waitForPreviewAssets(element: HTMLElement) {
+  const images = Array.from(element.querySelectorAll("img"));
+
+  await Promise.all(
+    images.map((image) => {
+      if (image.complete) return Promise.resolve();
+
+      return new Promise<void>((resolve) => {
+        const timeout = window.setTimeout(resolve, 1500);
+        const finish = () => {
+          window.clearTimeout(timeout);
+          resolve();
+        };
+
+        image.addEventListener("load", finish, { once: true });
+        image.addEventListener("error", finish, { once: true });
+      });
+    })
+  );
+}
 
 function buildShareCaption(boardTitle: string, artistName?: string) {
   const cleanArtistName =
@@ -78,9 +101,12 @@ export function LocalPreviewClient() {
 
     let canceled = false;
 
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
       const element = document.getElementById("board-capture");
       if (!element) return;
+
+      await waitForPreviewAssets(element);
+      if (canceled) return;
 
       captureElementAsPngDataUrl(element)
         .then((dataUrl) => {
@@ -89,9 +115,10 @@ export function LocalPreviewClient() {
             setPreviewImageError("");
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error("Failed to create preview image", error);
           if (!canceled) {
-            setPreviewImageError("이미지 미리보기를 준비하지 못했어요. 새로고침 후 다시 시도해주세요.");
+            setPreviewImageError("이미지 변환이 늦어지고 있어요. 현재 미리보기를 길게 눌러 저장해보세요.");
           }
         });
     });
@@ -100,6 +127,16 @@ export function LocalPreviewClient() {
       canceled = true;
     };
   }, [board, previewImageUrl]);
+
+  useEffect(() => {
+    if (!showSaveHint) return;
+
+    const timeout = window.setTimeout(() => {
+      setShowSaveHint(false);
+    }, 2000);
+
+    return () => window.clearTimeout(timeout);
+  }, [showSaveHint]);
 
   if (!loaded) {
     return <div className="min-h-screen bg-[#fcf8f7]" />;
@@ -137,32 +174,47 @@ export function LocalPreviewClient() {
           </button>
         </header>
 
-        <div aria-hidden={Boolean(previewImageUrl)} className={previewImageUrl ? "pointer-events-none fixed -left-[9999px] top-0 w-[360px]" : ""} id="board-capture">
-          <BoardPreview
-            artistName={board.artistName}
-            rows={board.rows}
-            title={board.title}
-          />
-        </div>
         {previewImageUrl ? (
           <img
             alt={`${board.title} 미리보기 이미지`}
             className="w-full rounded-[2px]"
             src={previewImageUrl}
           />
-        ) : previewImageError ? (
-          <p className="rounded-[20px] bg-white/70 p-5 text-center text-sm font-semibold text-[#ba1a1a]">
-            {previewImageError}
-          </p>
-        ) : null}
+        ) : (
+          <div className="mx-auto w-full max-w-[370px]">
+            <div
+              id="board-capture"
+              style={{
+                height: PREVIEW_CAPTURE_HEIGHT,
+                width: PREVIEW_CAPTURE_WIDTH
+              }}
+            >
+              <BoardPreview
+                artistName={board.artistName}
+                rows={board.rows}
+                title={board.title}
+              />
+            </div>
+            {previewImageError ? (
+              <p className="mt-3 text-center text-xs font-semibold text-[#8f8986]">
+                {previewImageError}
+              </p>
+            ) : null}
+          </div>
+        )}
 
-        <div className="mt-16">
+        <div className="relative mt-10">
+          {showSaveHint ? (
+            <p className="pointer-events-none absolute bottom-[calc(100%+12px)] left-1/2 z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.86)] px-4 py-2.5 text-center text-xs font-semibold text-[#1c1b1b] opacity-100 shadow-[0_12px_24px_rgba(0,0,0,0.12)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[7px] after:border-t-[7px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.86)]">
+              위 이미지를 길게 눌러 저장하세요.
+            </p>
+          ) : null}
           <LocalPreviewActions
             artistName={board.artistName}
             boardTitle={board.title}
             captureId="board-capture"
             onSaveHint={() => setShowSaveHint(true)}
-            previewImageReady={Boolean(previewImageUrl)}
+            previewImageReady={Boolean(previewImageUrl) || Boolean(previewImageError)}
             showSaveHint={showSaveHint}
           />
         </div>
@@ -259,11 +311,6 @@ function LocalPreviewActions({
       </Button>
       {saveError ? (
         <p className="text-center text-xs font-medium text-[#ba1a1a]">{saveError}</p>
-      ) : null}
-      {showSaveHint ? (
-        <p className="rounded-[18px] bg-white/70 px-4 py-3 text-center text-xs font-semibold text-[#77716e] shadow-[0_10px_22px_rgba(0,0,0,0.05)]">
-          위 이미지를 길게 눌러 사진 앱에 저장하세요.
-        </p>
       ) : null}
       <ShareChannelButtons
         onInstagramShare={handleInstagramShare}
