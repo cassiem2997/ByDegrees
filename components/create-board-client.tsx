@@ -66,6 +66,8 @@ export function CreateBoardClient({
   const [artistSearchLoading, setArtistSearchLoading] = useState(false);
   const [artistSearchError, setArtistSearchError] = useState("");
   const [saveError, setSaveError] = useState("");
+  const [showSaveToast, setShowSaveToast] = useState(false);
+  const [pendingDuplicateSong, setPendingDuplicateSong] = useState<MusicTrackResult | null>(null);
   const [selectionTarget, setSelectionTarget] = useState<SelectionTarget>(null);
   const [rows, setRows] = useState<BoardRow[]>(
     presets.map((preset) => ({ preset, songs: [null, null, null] }))
@@ -81,6 +83,7 @@ export function CreateBoardClient({
       : nickname.trim().length > 0
         ? `기온별 플리 by ${nickname.trim()}`
       : "";
+  const emptyRowCount = rows.filter((row) => row.songs.every((song) => !song)).length;
 
   useEffect(() => {
     const shouldRestore = window.sessionStorage.getItem(RESTORE_CREATE_STORAGE_KEY);
@@ -104,6 +107,16 @@ export function CreateBoardClient({
     }
   }, []);
 
+  useEffect(() => {
+    if (!showSaveToast) return;
+
+    const timeout = window.setTimeout(() => {
+      setShowSaveToast(false);
+    }, 2000);
+
+    return () => window.clearTimeout(timeout);
+  }, [showSaveToast]);
+
   function updateSong(
     presetId: string,
     slotIndex: number,
@@ -123,11 +136,12 @@ export function CreateBoardClient({
     );
   }
 
-  async function handleSongSelect(song: MusicTrackResult) {
+  async function addSongToSelection(song: MusicTrackResult) {
     if (!selectionTarget) return;
 
     updateSong(selectionTarget.presetId, selectionTarget.slotIndex, song);
     setSelectionTarget(null);
+    setPendingDuplicateSong(null);
 
     await fetch("/api/events", {
       method: "POST",
@@ -143,6 +157,19 @@ export function CreateBoardClient({
         }
       })
     });
+  }
+
+  async function handleSongSelect(song: MusicTrackResult) {
+    const isDuplicate = rows.some((row) =>
+      row.songs.some((item) => item?.providerTrackId === song.providerTrackId)
+    );
+
+    if (isDuplicate) {
+      setPendingDuplicateSong(song);
+      return;
+    }
+
+    await addSongToSelection(song);
   }
 
   async function handleArtistSearch() {
@@ -218,6 +245,11 @@ export function CreateBoardClient({
       artistQuery,
       rows
     };
+
+    if (emptyRowCount > 0) {
+      setShowSaveToast(true);
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -491,6 +523,18 @@ export function CreateBoardClient({
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-30 bg-gradient-to-t from-[#fcf8f8] via-[#fcf8f8] to-transparent px-4 pb-8 pt-6">
+        {showSaveToast ? (
+          <div className="pointer-events-none fixed left-1/2 top-1/2 z-50 w-[min(338px,calc(100%-48px))] -translate-x-1/2 -translate-y-1/2 rounded-[22px] bg-[rgba(216,211,208,0.92)] px-6 py-4 text-center text-[18px] font-bold leading-[1.45] tracking-[-0.03em] text-[#1c1b1b] shadow-[0_18px_34px_rgba(0,0,0,0.16)] backdrop-blur-sm">
+            <span aria-hidden="true" className="mx-auto mb-2 block text-[24px] leading-none">
+              ⚠️
+            </span>
+            <p>
+              <span className="whitespace-nowrap">모든 기온 구간에 한 곡</span>
+              <br />
+              이상을 선택해주세요.
+            </p>
+          </div>
+        ) : null}
         <Button
           className="mx-auto flex h-16 w-full max-w-[356px] items-center justify-center gap-3 bg-[#171412] text-[13px] font-bold tracking-[0.12em] text-white shadow-[0_18px_40px_rgba(18,18,18,0.22)] hover:translate-y-0 hover:bg-[#171412]"
           disabled={!canSave || isPending}
@@ -508,7 +552,12 @@ export function CreateBoardClient({
 
       <SearchSongDialog
         artistName={artistMode === "single" ? artistName : ""}
+        duplicateSong={pendingDuplicateSong}
+        onConfirmDuplicate={() => {
+          if (pendingDuplicateSong) void addSongToSelection(pendingDuplicateSong);
+        }}
         onClose={() => setSelectionTarget(null)}
+        onDuplicateCancel={() => setPendingDuplicateSong(null)}
         onSelect={handleSongSelect}
         open={selectionTarget !== null}
       />

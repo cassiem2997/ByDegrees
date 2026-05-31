@@ -12,12 +12,18 @@ import { getOrCreateSessionId } from "@/lib/session";
 export function SearchSongDialog({
   open,
   artistName,
+  duplicateSong,
   onClose,
+  onConfirmDuplicate,
+  onDuplicateCancel,
   onSelect
 }: {
   open: boolean;
   artistName?: string;
+  duplicateSong?: MusicTrackResult | null;
   onClose: () => void;
+  onConfirmDuplicate?: () => void;
+  onDuplicateCancel?: () => void;
   onSelect: (song: MusicTrackResult) => void;
 }) {
   const [query, setQuery] = useState(artistName ?? "");
@@ -154,6 +160,37 @@ export function SearchSongDialog({
           <p className="text-[12px] italic text-[#aaa5a2]">Spotify 검색 결과를 불러옵니다</p>
         </footer>
       </section>
+      {duplicateSong ? (
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center bg-black/18 px-8"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="w-full max-w-[330px] rounded-[24px] bg-[#f1edec]/95 px-6 py-6 text-center text-[#1c1b1b] shadow-[0_18px_38px_rgba(0,0,0,0.18)] backdrop-blur-sm">
+            <p className="text-[18px] font-extrabold leading-tight tracking-[-0.05em]">
+              이미 추가한 곡입니다.
+            </p>
+            <p className="mt-2 text-[14px] font-semibold leading-[1.45] text-[#6f6a67]">
+              그래도 추가하시겠어요?
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <Button
+                className="h-11 bg-white/75 text-[13px] font-bold text-[#4f4a47] shadow-none hover:translate-y-0 hover:bg-white"
+                onClick={onDuplicateCancel}
+                type="button"
+              >
+                취소
+              </Button>
+              <Button
+                className="h-11 bg-[#1a1a1a] text-[13px] font-bold text-white shadow-none hover:translate-y-0 hover:bg-[#1a1a1a]"
+                onClick={onConfirmDuplicate}
+                type="button"
+              >
+                추가하기
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
