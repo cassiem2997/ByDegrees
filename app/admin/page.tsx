@@ -44,6 +44,32 @@ function MetricCard({
   );
 }
 
+function RateCard({
+  title,
+  value,
+  caption
+}: {
+  title: string;
+  value: string;
+  caption: string;
+}) {
+  return (
+    <div className="rounded-[24px] border border-white/70 bg-white/70 p-5 shadow-[0_14px_34px_rgba(27,30,70,0.06)] backdrop-blur">
+      <p className="text-xs font-semibold text-ink/50">{title}</p>
+      <p className="mt-2 text-2xl font-semibold text-ink">{value}</p>
+      <p className="mt-1 text-xs text-ink/45">{caption}</p>
+    </div>
+  );
+}
+
+function formatRate(value: number) {
+  return `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
+}
+
+function formatAverage(value: number) {
+  return `${value.toFixed(value % 1 === 0 ? 0 : 1)}곡`;
+}
+
 function PeriodNavigation({ period }: { period: ReturnType<typeof normalizeAdminPeriod> }) {
   const units: Array<{ value: AdminPeriodUnit; label: string }> = [
     { value: "day", label: "일일" },
@@ -133,10 +159,70 @@ export default async function AdminPage({
 
         <PeriodNavigation period={period} />
 
-        <div className="grid gap-4 xl:grid-cols-3">
+        <div className="grid gap-4 xl:grid-cols-4">
           <MetricCard title="방문자 수" label={period.metricLabel} values={summary.visitors} />
+          <MetricCard title="플레이리스트 생성 완료" label={period.metricLabel} values={summary.boardsCreated} />
           <MetricCard title="이미지 저장 횟수" label={period.metricLabel} values={summary.imageSaves} />
           <MetricCard title="이미지 및 링크 공유 횟수" label={period.metricLabel} values={summary.shares} />
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <RateCard
+            caption="방문자 대비 생성 완료"
+            title="방문 → 생성"
+            value={formatRate(summary.funnel.visitToCreateRate)}
+          />
+          <RateCard
+            caption="생성 완료 대비 저장"
+            title="생성 → 저장"
+            value={formatRate(summary.funnel.createToSaveRate)}
+          />
+          <RateCard
+            caption="생성 완료 대비 공유"
+            title="생성 → 공유"
+            value={formatRate(summary.funnel.createToShareRate)}
+          />
+          <RateCard
+            caption="완성된 플리 1개당 평균"
+            title="평균 선택 곡 수"
+            value={formatAverage(summary.funnel.averageSongsPerBoard)}
+          />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
+            <p className="text-sm font-semibold text-ink">가장 많이 비는 기온 구간</p>
+            {summary.temperatureInsights.emptiest ? (
+              <div className="mt-4 rounded-2xl bg-ink/5 px-4 py-4">
+                <p className="text-2xl font-semibold text-ink">
+                  {summary.temperatureInsights.emptiest.label}
+                </p>
+                <p className="mt-1 text-sm text-ink/55">
+                  {summary.temperatureInsights.emptiest.totalBoards}개 중{" "}
+                  {summary.temperatureInsights.emptiest.count}개 플리에서 비어 있었어요.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-ink/45">아직 비교할 플레이리스트 데이터가 없습니다.</p>
+            )}
+          </div>
+
+          <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
+            <p className="text-sm font-semibold text-ink">가장 많이 채워지는 기온 구간</p>
+            {summary.temperatureInsights.fullest ? (
+              <div className="mt-4 rounded-2xl bg-ink/5 px-4 py-4">
+                <p className="text-2xl font-semibold text-ink">
+                  {summary.temperatureInsights.fullest.label}
+                </p>
+                <p className="mt-1 text-sm text-ink/55">
+                  {summary.temperatureInsights.fullest.totalBoards}개 플리에서 총{" "}
+                  {summary.temperatureInsights.fullest.count}곡이 배치됐어요.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-ink/45">아직 비교할 플레이리스트 데이터가 없습니다.</p>
+            )}
+          </div>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
@@ -161,7 +247,7 @@ export default async function AdminPage({
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <AdminChart label={period.chartLabel} metric="shares" series={summary.dailySeries} />
+          <AdminChart label={period.chartLabel} metric="creates" series={summary.dailySeries} />
           <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
             <p className="text-sm font-semibold text-ink">대륙별 방문자 수</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">

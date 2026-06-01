@@ -5,13 +5,14 @@ export function AdminChart({
   metric,
   label
 }: {
-  series: Array<{ date: string; pageViews: number; saves: number; shares: number }>;
-  metric: "pageViews" | "saves" | "shares";
+  series: Array<{ date: string; pageViews: number; creates: number; saves: number; shares: number }>;
+  metric: "pageViews" | "creates" | "saves" | "shares";
   label: string;
 }) {
   const max = Math.max(...series.map((item) => item[metric]), 1);
   const metricLabel = {
     pageViews: "방문",
+    creates: "생성",
     saves: "저장",
     shares: "공유"
   }[metric];
@@ -40,6 +41,7 @@ export function AdminChart({
                   className={cn(
                     "rounded-t-2xl bg-gradient-to-t",
                     metric === "pageViews" && "from-sky to-[#9bd8ff]",
+                    metric === "creates" && "from-lilac to-sky",
                     metric === "saves" && "from-peach to-gold",
                     metric === "shares" && "from-coral to-peach"
                   )}

@@ -73,6 +73,10 @@ export type AdminSummary = {
     current: number;
     cumulative: number;
   };
+  boardsCreated: {
+    current: number;
+    cumulative: number;
+  };
   imageSaves: {
     current: number;
     cumulative: number;
@@ -81,9 +85,19 @@ export type AdminSummary = {
     current: number;
     cumulative: number;
   };
+  funnel: {
+    visitToCreateRate: number;
+    createToSaveRate: number;
+    createToShareRate: number;
+    averageSongsPerBoard: number;
+  };
+  temperatureInsights: {
+    emptiest: { label: string; count: number; totalBoards: number } | null;
+    fullest: { label: string; count: number; totalBoards: number } | null;
+  };
   visitorCountries: Array<{ name: string; count: number }>;
   visitorContinents: Array<{ name: string; count: number }>;
   topArtists: Array<{ name: string; count: number }>;
   topSongs: Array<{ title: string; count: number }>;
-  dailySeries: Array<{ date: string; pageViews: number; saves: number; shares: number }>;
+  dailySeries: Array<{ date: string; pageViews: number; creates: number; saves: number; shares: number }>;
 };
