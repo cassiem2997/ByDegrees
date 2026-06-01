@@ -22,18 +22,12 @@ export default function HomePage() {
         <section className="flex flex-1 flex-col items-center justify-center pb-28 text-center">
           <Image
             alt="기온별플리 플레이리스트 생성 화면 목업"
-            className="mb-6 h-auto w-full max-w-[270px] sm:max-w-[320px]"
+            className="mb-10 h-auto w-full max-w-[270px] sm:max-w-[320px]"
             height={3096}
             priority
             src="/images/landing-mockup.png"
             width={1857}
           />
-
-          <p className="mb-8 text-[21px] font-medium leading-[1.35] tracking-[-0.04em]">
-            음악으로 기록하는 여러분의
-            <br />
-            계절을 공유해주세요 🎧
-          </p>
 
           <Link
             className="flex h-16 w-full items-center justify-center rounded-full bg-[#1a1a1a] text-[22px] font-extrabold tracking-[-0.05em] text-white shadow-[0_24px_42px_rgba(0,0,0,0.16)] transition active:scale-95"
