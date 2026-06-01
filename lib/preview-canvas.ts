@@ -1,6 +1,6 @@
 import { BoardSongSlot, BoardSummary } from "@/lib/types";
 
-const TEMPERATURE_EMOJIS = ["🥵", "🌞", "🌼", "🌱", "🍁", "🍂", "❄️", "🥶"];
+const TEMPERATURE_EMOJIS = ["🥵", "🌞", "🌼", "🌱", "🍃", "🍁", "❄️", "🥶"];
 const TEMPERATURE_COLORS = [
   "#ff6c62",
   "#ff8b4f",
@@ -91,10 +91,25 @@ function getSongTitleSize(title: string) {
   return 6.2;
 }
 
+function splitPreviewTitle(title: string) {
+  const byIndex = title.lastIndexOf(" by ");
+
+  if (byIndex === -1) {
+    return {
+      mainTitle: title,
+      byText: ""
+    };
+  }
+
+  return {
+    mainTitle: title.slice(0, byIndex),
+    byText: title.slice(byIndex + 1)
+  };
+}
+
 function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
   const displayTitle = title || "기온별 플리";
-  const [mainTitle, nickname] = displayTitle.split(" by ");
-  const byText = nickname ? ` by ${nickname}` : "";
+  const { mainTitle, byText } = splitPreviewTitle(displayTitle);
   const maxTitleWidth = 332;
   const mainTitleSize =
     displayTitle.length <= 18 ? 22 : displayTitle.length <= 26 ? 19 : 16;
@@ -105,8 +120,24 @@ function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
   let nextMainTitle = mainTitle;
   let mainWidth = ctx.measureText(nextMainTitle).width;
   ctx.font = titleFont(byTextSize, 500);
-  const nextByText = byText;
+  const nextByText = byText ? ` ${byText}` : "";
   const byWidth = ctx.measureText(nextByText).width;
+
+  if (mainWidth + byWidth > maxTitleWidth && byText) {
+    const stackedMainSize = mainTitle.length <= 18 ? 21 : mainTitle.length <= 28 ? 18 : 15.5;
+    const stackedBySize = stackedMainSize * 0.68;
+
+    ctx.textAlign = "center";
+    ctx.font = titleFont(stackedMainSize, 800);
+    ctx.fillStyle = "#1c1b1b";
+    ctx.fillText(truncateCanvasText(ctx, mainTitle, maxTitleWidth), 185, 27);
+
+    ctx.font = titleFont(stackedBySize, 500);
+    ctx.fillStyle = "#4f4a47";
+    ctx.fillText(truncateCanvasText(ctx, byText, 300), 185, 42);
+
+    return 58;
+  }
 
   ctx.font = titleFont(mainTitleSize, 800);
   while (
@@ -129,6 +160,8 @@ function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
     ctx.fillStyle = "#4f4a47";
     ctx.fillText(nextByText, x, 32);
   }
+
+  return 48;
 }
 
 export async function generateBoardPreviewDataUrl(board: BoardSummary) {
@@ -143,10 +176,9 @@ export async function generateBoardPreviewDataUrl(board: BoardSummary) {
   ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, 370, 658);
 
-  drawTitle(ctx, board.title);
+  const gridY = drawTitle(ctx, board.title);
 
   const gridX = 39;
-  const gridY = 48;
   const rowHeight = 68;
   const rowGap = 6;
   const barHeight = rowHeight * 8 + rowGap * 7;

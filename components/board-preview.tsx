@@ -6,7 +6,7 @@ import { TemperatureBar } from "@/components/temperature-bar";
 import { TemperatureRow } from "@/components/temperature-row";
 import { getTemperatureMoodStyle } from "@/components/temperature-outfit-icons";
 
-const TEMPERATURE_EMOJIS = ["🥵", "🌞", "🌼", "🌱", "🍁", "🍂", "❄️", "🥶"];
+const TEMPERATURE_EMOJIS = ["🥵", "🌞", "🌼", "🌱", "🍃", "🍁", "❄️", "🥶"];
 
 function getPreviewSongTitleClass(title: string) {
   if (title.length <= 8) return "text-[10px]";
@@ -25,21 +25,48 @@ function getPreviewTitleClass(title: string) {
   return "text-[16px]";
 }
 
+function splitPreviewTitle(title: string) {
+  const byIndex = title.lastIndexOf(" by ");
+
+  if (byIndex === -1) {
+    return {
+      mainTitle: title,
+      byText: ""
+    };
+  }
+
+  return {
+    mainTitle: title.slice(0, byIndex),
+    byText: title.slice(byIndex + 1)
+  };
+}
+
 function StyledPreviewTitle({ title }: { title: string }) {
   const displayTitle = title || "기온별 플리";
-  const [mainTitle, nickname] = displayTitle.split(" by ");
+  const { mainTitle, byText } = splitPreviewTitle(displayTitle);
+  const shouldStack = Boolean(byText) && (displayTitle.length > 28 || mainTitle.length > 19);
 
   return (
     <h2
       className={cn(
-        "truncate text-center leading-tight tracking-[-0.06em]",
+        "text-center tracking-[-0.06em]",
+        shouldStack ? "leading-[0.98]" : "truncate leading-tight",
         getPreviewTitleClass(displayTitle)
       )}
       title={displayTitle}
     >
-      <span className="font-extrabold text-[#1c1b1b]">{mainTitle}</span>
-      {nickname ? (
-        <span className="text-[70%] font-medium text-[#4f4a47]"> by {nickname}</span>
+      <span className={cn("font-extrabold text-[#1c1b1b]", shouldStack && "block truncate")}>
+        {mainTitle}
+      </span>
+      {byText ? (
+        <span
+          className={cn(
+            "text-[70%] font-medium text-[#4f4a47]",
+            shouldStack ? "mt-0.5 block truncate" : ""
+          )}
+        >
+          {shouldStack ? byText : ` ${byText}`}
+        </span>
       ) : null}
     </h2>
   );

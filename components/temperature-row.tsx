@@ -4,7 +4,7 @@ import { SongCard } from "@/components/song-card";
 import { BoardSongSlot, TemperaturePreset } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const TEMPERATURE_EMOJIS = ["🥵", "🌞", "🌼", "🌱", "🍁", "🍂", "❄️", "🥶"];
+const TEMPERATURE_EMOJIS = ["🥵", "🌞", "🌼", "🌱", "🍃", "🍁", "❄️", "🥶"];
 
 export function TemperatureRow({
   preset,
