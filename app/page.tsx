@@ -21,15 +21,15 @@ export default function HomePage() {
 
         <section className="flex flex-1 flex-col items-center justify-center pb-28 text-center">
           <Image
-            alt="기온별플리"
-            className="mb-16 h-auto w-full max-w-[370px]"
-            height={290}
+            alt="기온별플리 플레이리스트 생성 화면 목업"
+            className="mb-6 h-auto w-full max-w-[270px] sm:max-w-[320px]"
+            height={3096}
             priority
-            src="/images/gion-logo-transparent.png"
-            width={948}
+            src="/images/landing-mockup.png"
+            width={1857}
           />
 
-          <p className="mb-36 text-[21px] font-medium leading-[1.35] tracking-[-0.04em]">
+          <p className="mb-8 text-[21px] font-medium leading-[1.35] tracking-[-0.04em]">
             음악으로 기록하는 여러분의
             <br />
             계절을 공유해주세요 🎧
