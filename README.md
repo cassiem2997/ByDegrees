@@ -102,6 +102,8 @@ npm run migrate
 - 검색 및 탐색 기준 인기 아티스트 / 곡
 - 국가 / 대륙별 방문 지표
 
+관리자 로그인 쿠키가 있는 요청은 방문, 검색, 선택, 생성, 저장, 공유 통계에서 제외됩니다.
+
 ## Deploy on Vercel
 
 1. GitHub repository를 Vercel에서 import합니다.

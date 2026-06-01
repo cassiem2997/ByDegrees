@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { ADMIN_COOKIE_NAME } from "@/lib/admin-auth";
 import { assertServerEnv } from "@/lib/config";
 
 const loginSchema = z.object({
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set("temptracks_admin", "true", {
+  cookieStore.set(ADMIN_COOKIE_NAME, "true", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

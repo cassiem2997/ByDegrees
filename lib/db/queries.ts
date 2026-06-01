@@ -95,13 +95,16 @@ export async function upsertSong(song: MusicTrackResult) {
   return rows[0].id;
 }
 
-export async function createBoard(payload: BoardPayload) {
+export async function createBoard(
+  payload: BoardPayload,
+  options: { isInternal?: boolean } = {}
+) {
   const sql = getSql();
   const slug = buildBoardSlug(payload.artistName, payload.title);
   const artistId = await upsertArtist(payload.artistName);
 
   const boardRows = (await sql(
-    "insert into boards (title, slug, artist_name, artist_id, template_key, is_public, aspect_ratio) values ($1, $2, $3, $4, $5, $6, $7) returning id, slug",
+    "insert into boards (title, slug, artist_name, artist_id, template_key, is_public, aspect_ratio, is_internal) values ($1, $2, $3, $4, $5, $6, $7, $8) returning id, slug",
     [
       payload.title,
       slug,
@@ -109,7 +112,8 @@ export async function createBoard(payload: BoardPayload) {
       artistId,
       payload.templateKey,
       payload.isPublic,
-      "portrait"
+      "portrait",
+      options.isInternal ?? false
     ]
   )) as { id: string; slug: string }[];
 

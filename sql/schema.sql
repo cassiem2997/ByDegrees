@@ -40,6 +40,7 @@ create table if not exists boards (
   template_key text not null default 'temp-core-v1',
   is_public boolean not null default true,
   aspect_ratio text not null default 'portrait',
+  is_internal boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -67,6 +68,7 @@ create table if not exists events (
 create index if not exists idx_events_type_date on events(event_type, created_at desc);
 create index if not exists idx_events_session on events(session_id);
 create index if not exists idx_boards_slug on boards(slug);
+create index if not exists idx_boards_internal_created_at on boards(is_internal, created_at desc);
 create index if not exists idx_board_items_board on board_items(board_id);
 
 insert into temperature_presets (id, template_key, label, min_temp, max_temp, sort_order)

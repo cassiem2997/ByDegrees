@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { isAdminRequest } from "@/lib/admin-auth";
 import { logEvent } from "@/lib/analytics";
 import { createBoard } from "@/lib/db/queries";
 
@@ -45,12 +46,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const board = await createBoard(parsed.data);
-    await logEvent("create_board", parsed.data.sessionId, {
-      artist: parsed.data.artistName,
-      board_id: board.id,
-      title: parsed.data.title
-    });
+    const isInternal = isAdminRequest(request);
+    const board = await createBoard(parsed.data, { isInternal });
+
+    if (!isInternal) {
+      await logEvent("create_board", parsed.data.sessionId, {
+        artist: parsed.data.artistName,
+        board_id: board.id,
+        title: parsed.data.title
+      });
+    }
 
     return NextResponse.json(board, { status: 201 });
   } catch (error) {

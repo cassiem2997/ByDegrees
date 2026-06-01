@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { isAdminRequest } from "@/lib/admin-auth";
 import { logEvent } from "@/lib/analytics";
 
 const eventSchema = z.object({
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest) {
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid event payload" }, { status: 400 });
+  }
+
+  if (isAdminRequest(request)) {
+    return NextResponse.json({ ok: true, skipped: "admin" });
   }
 
   const requestMetadata = {

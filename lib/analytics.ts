@@ -110,6 +110,7 @@ export async function getAdminSummary(
           end)::int as current,
           count(*)::int as cumulative
         from boards
+        where coalesce(is_internal, false) = false
       `,
       [rangeStart, rangeEnd]
     )) as { current: number; cumulative: number }[];
@@ -179,7 +180,8 @@ export async function getAdminSummary(
       `
         select artist_name as name, count(*)::int as count
         from boards
-        where ($1::timestamptz is null or created_at >= $1::timestamptz)
+        where coalesce(is_internal, false) = false
+          and ($1::timestamptz is null or created_at >= $1::timestamptz)
           and ($2::timestamptz is null or created_at < $2::timestamptz)
         group by artist_name
         order by count(*) desc, artist_name asc
@@ -194,7 +196,8 @@ export async function getAdminSummary(
         from board_items bi
         join boards b on b.id = bi.board_id
         join songs s on s.id = bi.song_id
-        where ($1::timestamptz is null or b.created_at >= $1::timestamptz)
+        where coalesce(b.is_internal, false) = false
+          and ($1::timestamptz is null or b.created_at >= $1::timestamptz)
           and ($2::timestamptz is null or b.created_at < $2::timestamptz)
         group by s.title
         order by count(*) desc, s.title asc
@@ -240,7 +243,8 @@ export async function getAdminSummary(
         select coalesce(round(count(bi.id)::numeric / nullif(count(distinct b.id), 0), 1), 0)::float as average
         from boards b
         left join board_items bi on bi.board_id = b.id
-        where ($1::timestamptz is null or b.created_at >= $1::timestamptz)
+        where coalesce(b.is_internal, false) = false
+          and ($1::timestamptz is null or b.created_at >= $1::timestamptz)
           and ($2::timestamptz is null or b.created_at < $2::timestamptz)
       `,
       [rangeStart, rangeEnd]
@@ -251,7 +255,8 @@ export async function getAdminSummary(
         with filtered_boards as (
           select id
           from boards
-          where ($1::timestamptz is null or created_at >= $1::timestamptz)
+          where coalesce(is_internal, false) = false
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
             and ($2::timestamptz is null or created_at < $2::timestamptz)
         ),
         board_total as (
@@ -312,6 +317,7 @@ export async function getAdminSummary(
             (created_at at time zone 'Asia/Seoul')::date as day,
             count(*)::int as creates
           from boards
+          where coalesce(is_internal, false) = false
           group by (created_at at time zone 'Asia/Seoul')::date
         )
         select

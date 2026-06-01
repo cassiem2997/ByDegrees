@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { isAdminRequest } from "@/lib/admin-auth";
 import { logEvent } from "@/lib/analytics";
 import { getMusicProvider } from "@/lib/providers/music";
 
@@ -16,10 +17,12 @@ export async function GET(request: NextRequest) {
     const provider = getMusicProvider("spotify");
     const items = await provider.searchTracks(query);
 
-    await logEvent("search_song", sessionId, {
-      query,
-      provider: "spotify"
-    });
+    if (!isAdminRequest(request)) {
+      await logEvent("search_song", sessionId, {
+        query,
+        provider: "spotify"
+      });
+    }
 
     return NextResponse.json({ items });
   } catch (error) {

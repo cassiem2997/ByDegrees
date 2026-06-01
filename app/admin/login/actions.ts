@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { ADMIN_COOKIE_NAME } from "@/lib/admin-auth";
 import { assertServerEnv } from "@/lib/config";
 
 export async function loginAdmin(formData: FormData) {
@@ -14,7 +15,7 @@ export async function loginAdmin(formData: FormData) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set("temptracks_admin", "true", {
+  cookieStore.set(ADMIN_COOKIE_NAME, "true", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
