@@ -96,6 +96,35 @@ function RateCard({
   );
 }
 
+function FunnelStepCard({
+  title,
+  value,
+  caption,
+  tone
+}: {
+  title: string;
+  value: number;
+  caption: string;
+  tone: "sky" | "mint" | "gold" | "coral";
+}) {
+  const toneClass = {
+    sky: "bg-sky/16 text-ink",
+    mint: "bg-mint/18 text-ink",
+    gold: "bg-gold/22 text-ink",
+    coral: "bg-coral/14 text-coral"
+  }[tone];
+
+  return (
+    <div className="rounded-[24px] border border-white/70 bg-white/72 p-4 shadow-[0_14px_34px_rgba(27,30,70,0.05)] backdrop-blur">
+      <div className={cn("mb-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold", toneClass)}>
+        {title}
+      </div>
+      <p className="text-3xl font-semibold text-ink">{formatShortNumber(value)}</p>
+      <p className="mt-1 text-xs text-ink/45">{caption}</p>
+    </div>
+  );
+}
+
 function formatRate(value: number) {
   return `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
 }
@@ -225,6 +254,32 @@ export default async function AdminPage({
 
         <div className="space-y-3">
           <SectionHeader eyebrow="Funnel" title="방문에서 공유까지" />
+          <div className="grid gap-3 md:grid-cols-4">
+            <FunnelStepCard
+              caption="페이지를 방문한 고유 세션"
+              title="방문"
+              tone="sky"
+              value={summary.visitors.current}
+            />
+            <FunnelStepCard
+              caption="미리보기까지 완료한 수"
+              title="생성 완료"
+              tone="mint"
+              value={summary.boardsCreated.current}
+            />
+            <FunnelStepCard
+              caption="저장 버튼을 누른 횟수"
+              title="이미지 저장"
+              tone="gold"
+              value={summary.imageSaves.current}
+            />
+            <FunnelStepCard
+              caption="X 공유 또는 링크 복사"
+              title="공유"
+              tone="coral"
+              value={summary.shares.current}
+            />
+          </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <RateCard
               caption="방문자 대비 생성 완료"
