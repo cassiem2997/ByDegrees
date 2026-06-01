@@ -100,7 +100,7 @@ export async function getAdminSummary(
       [rangeStart, rangeEnd]
     )) as { current: number; cumulative: number }[];
 
-    const [boardCounts] = (await sql(
+    const [completionCounts] = (await sql(
       `
         select
           count(case
@@ -109,8 +109,8 @@ export async function getAdminSummary(
             then 1
           end)::int as current,
           count(*)::int as cumulative
-        from boards
-        where coalesce(is_internal, false) = false
+        from events
+        where event_type = 'create_board'
       `,
       [rangeStart, rangeEnd]
     )) as { current: number; cumulative: number }[];
@@ -178,13 +178,15 @@ export async function getAdminSummary(
 
     const topArtists = (await sql(
       `
-        select artist_name as name, count(*)::int as count
-        from boards
-        where coalesce(is_internal, false) = false
+        select metadata->>'artist' as name, count(*)::int as count
+        from events
+        where event_type = 'create_board'
+          and metadata ? 'artist'
+          and coalesce(metadata->>'artist', '') <> ''
           and ($1::timestamptz is null or created_at >= $1::timestamptz)
           and ($2::timestamptz is null or created_at < $2::timestamptz)
-        group by artist_name
-        order by count(*) desc, artist_name asc
+        group by metadata->>'artist'
+        order by count(*) desc, metadata->>'artist' asc
         limit 5
       `,
       [rangeStart, rangeEnd]
@@ -307,35 +309,27 @@ export async function getAdminSummary(
           select
             (created_at at time zone 'Asia/Seoul')::date as day,
             count(distinct case when event_type = 'page_view' then session_id end)::int as pageviews,
+            coalesce(sum(case when event_type = 'create_board' then 1 else 0 end), 0)::int as creates,
             coalesce(sum(case when event_type = 'save_image' then 1 else 0 end), 0)::int as saves,
             coalesce(sum(case when event_type = 'share' then 1 else 0 end), 0)::int as shares
           from events
-          group by (created_at at time zone 'Asia/Seoul')::date
-        ),
-        board_counts as (
-          select
-            (created_at at time zone 'Asia/Seoul')::date as day,
-            count(*)::int as creates
-          from boards
-          where coalesce(is_internal, false) = false
           group by (created_at at time zone 'Asia/Seoul')::date
         )
         select
           to_char(days.day, 'YYYY-MM-DD') as date,
           coalesce(event_counts.pageviews, 0)::int as pageviews,
-          coalesce(board_counts.creates, 0)::int as creates,
+          coalesce(event_counts.creates, 0)::int as creates,
           coalesce(event_counts.saves, 0)::int as saves,
           coalesce(event_counts.shares, 0)::int as shares
         from days
         left join event_counts on event_counts.day = days.day::date
-        left join board_counts on board_counts.day = days.day::date
         order by days.day asc
       `,
       [rangeStart, rangeEnd]
     )) as { date: string; pageviews: number; creates: number; saves: number; shares: number }[];
 
     const currentVisitors = visitorCounts?.current ?? 0;
-    const currentBoards = boardCounts?.current ?? 0;
+    const currentBoards = completionCounts?.current ?? 0;
     const currentSaves = imageSaveCounts?.current ?? 0;
     const currentShares = shareCounts?.current ?? 0;
     const rowsWithBoards = temperatureRows.filter((row) => row.total_boards > 0);
@@ -353,7 +347,7 @@ export async function getAdminSummary(
       },
       boardsCreated: {
         current: currentBoards,
-        cumulative: boardCounts?.cumulative ?? 0
+        cumulative: completionCounts?.cumulative ?? 0
       },
       imageSaves: {
         current: currentSaves,

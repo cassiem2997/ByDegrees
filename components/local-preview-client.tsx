@@ -44,8 +44,9 @@ function buildXShareText(boardTitle: string, artistName?: string) {
   );
 }
 
-function getAppShareUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+function getAppShareUrl(path = "") {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+  return `${baseUrl.replace(/\/$/, "")}${path}`;
 }
 
 function buildXIntentUrl(text: string, url?: string) {
@@ -216,6 +217,8 @@ export function LocalPreviewClient() {
           ) : null}
           <LocalPreviewActions
             artistName={board.artistName}
+            boardId={board.id}
+            boardSlug={board.slug}
             boardTitle={board.title}
             onLinkCopied={() => setShowLinkCopiedToast(true)}
             onSaveHint={() => setShowSaveHint(true)}
@@ -230,6 +233,8 @@ export function LocalPreviewClient() {
 
 function LocalPreviewActions({
   artistName,
+  boardId,
+  boardSlug,
   boardTitle,
   onLinkCopied,
   onSaveHint,
@@ -237,6 +242,8 @@ function LocalPreviewActions({
   showSaveHint
 }: {
   artistName: string;
+  boardId: string;
+  boardSlug: string;
   boardTitle: string;
   onLinkCopied: () => void;
   onSaveHint: () => void;
@@ -244,7 +251,7 @@ function LocalPreviewActions({
   showSaveHint: boolean;
 }) {
   const [saveError, setSaveError] = useState("");
-  const appShareUrl = getAppShareUrl();
+  const shareUrl = boardSlug === "preview" ? getAppShareUrl() : getAppShareUrl(`/boards/${boardSlug}`);
 
   async function handleDownload() {
     if (!previewImageReady) {
@@ -256,20 +263,20 @@ function LocalPreviewActions({
     onSaveHint();
 
     await logClientEvent("save_image", {
-      board_id: "local-preview",
-      board_slug: "preview",
+      board_id: boardId,
+      board_slug: boardSlug,
       board_title: boardTitle
     });
   }
 
   async function handleCopyLink() {
     if (!navigator.clipboard) return;
-    await navigator.clipboard.writeText(appShareUrl);
+    await navigator.clipboard.writeText(shareUrl);
     onLinkCopied();
 
     await logClientEvent("share", {
-      board_id: "local-preview",
-      board_slug: "preview",
+      board_id: boardId,
+      board_slug: boardSlug,
       channel: "copy_link"
     });
   }
@@ -281,8 +288,8 @@ function LocalPreviewActions({
       "noopener,noreferrer"
     );
     await logClientEvent("share", {
-      board_id: "local-preview",
-      board_slug: "preview",
+      board_id: boardId,
+      board_slug: boardSlug,
       channel: "x_intent"
     });
   }

@@ -253,23 +253,43 @@ export function CreateBoardClient({
 
     startTransition(async () => {
       try {
-        window.sessionStorage.setItem(PREVIEW_STORAGE_KEY, JSON.stringify(previewBoard));
-        window.sessionStorage.setItem(CREATE_DRAFT_STORAGE_KEY, JSON.stringify(draft));
-        window.sessionStorage.setItem(RESTORE_CREATE_STORAGE_KEY, "1");
-        await fetch("/api/events", {
+        const response = await fetch("/api/boards", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            eventType: "create_board",
             sessionId: getOrCreateSessionId(),
-            metadata: {
-              artist: previewBoard.artistName,
-              board_id: previewBoard.id,
-              title: previewBoard.title,
-              mode: "preview"
-            }
+            title: previewBoard.title,
+            artistName: previewBoard.artistName,
+            isPublic: previewBoard.isPublic,
+            templateKey: previewBoard.templateKey,
+            rows: previewBoard.rows.map((row) => ({
+              temperaturePresetId: row.preset.id,
+              songs: row.songs
+            }))
           })
         });
+
+        const data = (await response.json()) as {
+          id?: string;
+          slug?: string;
+          error?: string;
+        };
+
+        if (!response.ok || !data.id || !data.slug) {
+          setSaveError(data.error ?? "플레이리스트 미리보기를 준비하지 못했어요. 다시 시도해주세요.");
+          return;
+        }
+
+        window.sessionStorage.setItem(
+          PREVIEW_STORAGE_KEY,
+          JSON.stringify({
+            ...previewBoard,
+            id: data.id,
+            slug: data.slug
+          })
+        );
+        window.sessionStorage.setItem(CREATE_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+        window.sessionStorage.setItem(RESTORE_CREATE_STORAGE_KEY, "1");
         router.push("/preview");
       } catch {
         setSaveError("이미지 미리보기를 준비하지 못했어요. 다시 시도해주세요.");
