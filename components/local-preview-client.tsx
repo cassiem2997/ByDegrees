@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Download, Link2 } from "lucide-react";
 
@@ -157,6 +158,17 @@ export function LocalPreviewClient() {
   return (
     <main className="min-h-screen bg-[#fcf8f7] text-[#1c1b1b]">
       <div className="mx-auto min-h-screen w-full max-w-[450px] pb-24 pt-6">
+        <header className="mb-7 flex items-center justify-center px-6">
+          <Image
+            alt="기온별플리"
+            className="h-auto w-[124px]"
+            height={38}
+            priority
+            src="/images/gion-logo-transparent.png"
+            width={124}
+          />
+        </header>
+
         {previewImageUrl ? (
           <img
             alt={`${board.title} 미리보기 이미지`}

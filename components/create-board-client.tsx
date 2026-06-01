@@ -490,7 +490,7 @@ export function CreateBoardClient({
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-[450px] px-10 pb-36 pt-5 text-[#1c1b1b]">
-      <header className="mb-7 flex items-center border-b border-[#e6dfdc] pb-5">
+      <header className="mb-7 flex items-center justify-center border-b border-[#e6dfdc] pb-5">
         <button className="flex h-8 w-[116px] items-center" onClick={() => setStep("mode")} type="button">
           <Image
             alt="기온별플리"

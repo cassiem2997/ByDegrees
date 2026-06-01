@@ -46,7 +46,7 @@ export default async function BoardResultPage({
     <main className="min-h-screen bg-[#fcf8f7] text-[#1c1b1b]">
       <PageViewTracker metadata={{ page: "board", slug: board.slug }} />
       <div className="mx-auto min-h-screen w-full max-w-[450px] px-6 pb-24 pt-8 sm:px-10">
-        <header className="mb-14 flex items-center justify-between">
+        <header className="mb-7 flex items-center justify-center">
           <Image
             alt="기온별플리"
             className="h-auto w-[124px]"
@@ -54,9 +54,6 @@ export default async function BoardResultPage({
             src="/images/gion-logo-transparent.png"
             width={124}
           />
-          <button className="text-[13px] font-bold tracking-[0.18em] text-[#8c8b89]" type="button">
-            KOR <span className="mx-2 font-normal text-[#c6c2c0]">|</span> ENG
-          </button>
         </header>
 
         <div id="board-capture">

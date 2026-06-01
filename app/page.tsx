@@ -8,7 +8,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-[#fcf8f7] text-[#1c1b1b]">
       <PageViewTracker metadata={{ page: "landing" }} />
       <div className="mx-auto flex min-h-screen w-full max-w-[450px] flex-col px-10">
-        <header className="flex items-center py-10">
+        <header className="flex items-center justify-center py-10">
           <Image
             alt="기온별플리"
             className="h-auto w-[132px]"
