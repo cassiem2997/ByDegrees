@@ -197,6 +197,11 @@ export function LocalPreviewClient() {
               눌러 저장해주세요.
             </p>
           ) : null}
+          {showLinkCopiedToast ? (
+            <p className="pointer-events-none absolute bottom-[calc(100%-4px)] left-[calc(83.333333%-1rem)] z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.9)] px-5 py-3 text-center text-[14px] font-semibold leading-[1.35] text-[#1c1b1b] shadow-[0_14px_28px_rgba(0,0,0,0.13)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[14px] after:border-t-[14px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.9)]">
+              링크가 복사되었습니다.
+            </p>
+          ) : null}
           <LocalPreviewActions
             artistName={board.artistName}
             boardTitle={board.title}
@@ -205,11 +210,6 @@ export function LocalPreviewClient() {
             previewImageReady={Boolean(previewImageUrl)}
             showSaveHint={showSaveHint}
           />
-          {showLinkCopiedToast ? (
-            <p className="pointer-events-none absolute left-1/2 top-[calc(100%+12px)] z-10 -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.9)] px-4 py-2 text-center text-[13px] font-semibold text-[#1c1b1b] shadow-[0_12px_24px_rgba(0,0,0,0.12)] backdrop-blur-sm">
-              링크가 복사되었습니다.
-            </p>
-          ) : null}
         </div>
       </div>
     </main>
@@ -264,7 +264,7 @@ function LocalPreviewActions({
 
   async function handleXShare() {
     window.open(
-      buildXIntentUrl(buildXShareText(boardTitle, artistName), appShareUrl),
+      buildXIntentUrl(buildXShareText(boardTitle, artistName)),
       "_blank",
       "noopener,noreferrer"
     );
@@ -309,7 +309,7 @@ function LocalPreviewActions({
           type="button"
         >
           <Link2 className="h-4 w-4" />
-          링크로 공유
+          링크 공유
         </Button>
       </div>
       <Button

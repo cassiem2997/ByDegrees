@@ -25,7 +25,7 @@ async function logClientEvent(eventType: string, metadata: Record<string, unknow
   });
 }
 
-function buildShareCaption(boardTitle: string, artistName?: string, boardUrl?: string) {
+function buildShareCaption(boardTitle: string, artistName?: string) {
   const cleanArtistName =
     artistName && artistName !== "Various Artists"
       ? artistName.replace(/[^\p{L}\p{N}]/gu, "")
@@ -40,7 +40,7 @@ function buildShareCaption(boardTitle: string, artistName?: string, boardUrl?: s
     englishArtistName ? `#${englishArtistName}ByDegrees` : ""
   ].filter(Boolean);
 
-  return [boardTitle, tags.join(" "), boardUrl].filter(Boolean).join("\n");
+  return [boardTitle, tags.join(" ")].filter(Boolean).join("\n");
 }
 
 function buildXShareText(boardTitle: string, artistName?: string) {
@@ -79,7 +79,7 @@ export function ShareActions({
   const [saveError, setSaveError] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
   const boardUrl = absoluteUrl(`/boards/${boardSlug}`);
-  const twitterIntentUrl = buildXIntentUrl(buildXShareText(boardTitle, artistName), boardUrl);
+  const twitterIntentUrl = buildXIntentUrl(buildXShareText(boardTitle, artistName));
 
   async function handleDownload() {
     const element = document.getElementById(captureId);
