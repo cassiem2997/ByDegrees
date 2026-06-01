@@ -75,6 +75,8 @@ export async function getAdminSummary(
     visitorContinents: [],
     topArtists: [],
     topSongs: [],
+    exploredArtists: [],
+    exploredSongs: [],
     dailySeries: []
   };
 
@@ -196,6 +198,38 @@ export async function getAdminSummary(
           and ($2::timestamptz is null or b.created_at < $2::timestamptz)
         group by s.title
         order by count(*) desc, s.title asc
+        limit 10
+      `,
+      [rangeStart, rangeEnd]
+    )) as { title: string; count: number }[];
+
+    const exploredArtists = (await sql(
+      `
+        select metadata->>'artist' as name, count(*)::int as count
+        from events
+        where event_type = 'select_artist'
+          and metadata ? 'artist'
+          and coalesce(metadata->>'artist', '') <> ''
+          and ($1::timestamptz is null or created_at >= $1::timestamptz)
+          and ($2::timestamptz is null or created_at < $2::timestamptz)
+        group by metadata->>'artist'
+        order by count(*) desc, metadata->>'artist' asc
+        limit 5
+      `,
+      [rangeStart, rangeEnd]
+    )) as { name: string; count: number }[];
+
+    const exploredSongs = (await sql(
+      `
+        select metadata->>'song_title' as title, count(*)::int as count
+        from events
+        where event_type = 'select_song'
+          and metadata ? 'song_title'
+          and coalesce(metadata->>'song_title', '') <> ''
+          and ($1::timestamptz is null or created_at >= $1::timestamptz)
+          and ($2::timestamptz is null or created_at < $2::timestamptz)
+        group by metadata->>'song_title'
+        order by count(*) desc, metadata->>'song_title' asc
         limit 10
       `,
       [rangeStart, rangeEnd]
@@ -352,6 +386,8 @@ export async function getAdminSummary(
       })),
       topArtists,
       topSongs,
+      exploredArtists,
+      exploredSongs,
       dailySeries: dailySeries.map((entry) => ({
         date: entry.date,
         pageViews: entry.pageviews,
