@@ -9,7 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "migrate": "node ./scripts/apply-migrations.mjs",
-    "migrate:status": "node ./scripts/apply-migrations.mjs --status"
+    "migrate:status": "node ./scripts/apply-migrations.mjs --status",
+    "seed:spotify-cache": "node ./scripts/seed-spotify-cache.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
