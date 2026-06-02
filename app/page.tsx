@@ -44,9 +44,6 @@ export default function HomePage() {
             <br />
             조금 뒤 다시 찾아와주세요.
           </p>
-          <div className="mt-6 flex h-14 items-center justify-center rounded-full bg-[#1a1a1a] text-[17px] font-extrabold tracking-[-0.05em] text-white">
-            잠시 점검 중
-          </div>
         </section>
       </div>
     </main>
