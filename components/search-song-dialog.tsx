@@ -162,7 +162,7 @@ export function SearchSongDialog({
         </div>
 
         <footer className="absolute bottom-0 w-full bg-[#fcf8f7] px-10 py-5 text-center">
-          <p className="text-[12px] italic text-[#aaa5a2]">Spotify 검색 결과를 불러옵니다</p>
+          <p className="text-[12px] italic text-[#aaa5a2]">음악 검색 결과를 불러옵니다</p>
         </footer>
       </section>
       {duplicateSong ? (

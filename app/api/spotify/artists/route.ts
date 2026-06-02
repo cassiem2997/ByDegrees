@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     if (!isAdminRequest(request)) {
       await logEvent("search_artist", sessionId, {
         query,
-        provider: "spotify"
+        provider: process.env.MUSIC_PROVIDER ?? process.env.NEXT_PUBLIC_MUSIC_PROVIDER ?? "itunes"
       });
     }
 
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         items: [],
-        error: "Spotify 연결이 잠시 불안정해요. 다시 검색해보세요."
+        error: "음악 검색 연결이 잠시 불안정해요. 다시 검색해보세요."
       },
       { status: 500 }
     );
