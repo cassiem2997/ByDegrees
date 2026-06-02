@@ -31,6 +31,9 @@
 ## 데이터 / 기능
 
 - [x] Spotify API 연결
+- [x] Spotify 검색 메모리 캐시 적용
+- [x] Spotify 검색 Neon 캐시 적용
+- [x] Spotify 429 stale cache fallback 적용
 - [x] 곡명 / 아티스트명 / 앨범아트 조회 확인
 - [x] 이름 / 닉네임 입력 저장 연결
 - [x] 아티스트 옵션 기반 자동 제목 연결
@@ -47,6 +50,8 @@
 - [x] X 공유 버튼 구현
 - [x] 링크 복사 버튼 구현
 - [x] X intent URL 제외 정책 확정
+- [x] 링크 복사 URL 서비스 홈으로 고정
+- [x] 링크 복사 토스트 중앙 표시
 - [x] 해시태그 정책 확정
 - [x] 카카오 직접 공유 제외
 
@@ -74,4 +79,6 @@
 - [x] migration 실제 적용
 - [x] Vercel 환경변수 등록
 - [x] Vercel 배포
+- [x] Discord 429 알림 구현
+- [x] Google 검색용 metadata / site icon 설정
 - [ ] 배포 후 저장 / 공유 / admin 최종 재검증

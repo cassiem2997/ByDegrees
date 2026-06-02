@@ -22,8 +22,8 @@
 - `/preview`
   - 로컬 세션 기반 저장용 이미지 미리보기
 - `/boards/[slug]`
-  - 저장된 결과 이미지 미리보기와 Open Graph 공유 대상
-  - 이미지 저장 / X 공유 / 링크 복사
+  - 저장된 보드 조회 화면
+  - 현재 기본 사용자 공유 흐름에서는 서비스 홈 URL 복사를 사용하므로, 공개 보드 링크 공유는 기본 노출하지 않음
 - `/admin/login`
   - 운영자 패스코드 진입
 - `/admin`
@@ -88,6 +88,7 @@
 - 이미지 저장: 최종 결과 PNG를 길게 눌러 저장하도록 안내
 - X 공유: 기본 문구 + 해시태그 intent
 - 링크 공유: 별도 링크 복사 버튼
+- 링크 복사는 서비스 홈 URL을 사용
 - X intent에는 URL을 넣지 않음. 사용자가 작성 화면에서 저장 이미지를 직접 첨부할 수 있게 하기 위함
 - 인스타그램 / 카카오 직접 공유는 현재 범위에서 제외
 
@@ -122,16 +123,20 @@
 ## 9. Tech Notes
 
 - 음악 메타데이터: Spotify Web API
+- Spotify 검색 안정화: server memory cache + Neon search cache
 - DB: Neon Postgres
 - Hosting: Vercel
 - Admin 보호: `ADMIN_PASSCODE` + cookie gate
 - 국가 / 대륙 추적: Vercel geo headers
 - Image export: client-side Canvas PNG
 - OG image: Next.js `ImageResponse`
+- 장애 알림: Spotify 429 발생 시 Discord webhook 알림
+- SEO: App Router metadata + `app/icon.tsx`
 
 ## 10. Current Non-Goals
 
 - 공개 보드 탐색
+- 공개 보드 URL 중심 공유
 - 로그인 사용자 계정 체계
 - 보드 수정 기능
 - 커뮤니티 기능

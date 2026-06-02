@@ -16,7 +16,6 @@
 4. 8개 기온 구간마다 최대 3곡씩 배치합니다.
 5. 모든 기온 구간에 한 곡 이상을 넣으면 플레이리스트 미리보기로 이동합니다.
 6. 9:16 이미지를 길게 눌러 저장하거나 X/링크로 공유합니다.
-7. 공개 보드 URL에서는 저장, X 공유, 링크 복사를 다시 실행할 수 있습니다.
 
 ## Highlights
 
@@ -24,10 +23,13 @@
 - 기온 구간별 컬러, 계절 이모지, 앨범아트 레이아웃
 - Canvas 기반 미리보기 PNG 생성으로 모바일 저장 UX 안정화
 - X intent 공유와 링크 복사 분리
+- 링크 복사는 서비스 홈 URL 기준으로 고정
 - 중복곡 추가 확인, 빈 기온 구간 안내 토스트
 - 생성 완료, 탐색, 저장, 공유 이벤트 로깅
 - 기간 네비게이션과 퍼널 지표가 있는 관리자 통계 대시보드
-- 루트/공개 보드별 Open Graph 링크 미리보기
+- Spotify 검색 결과 메모리 캐시 + Neon 캐시
+- Spotify 429 감지 시 Discord webhook 알림
+- 루트 Open Graph 링크 미리보기와 사이트 아이콘
 
 ## Tech Stack
 
@@ -63,9 +65,13 @@ ADMIN_EMAIL=admin@example.com
 ADMIN_PASSCODE=change-me
 NEXT_PUBLIC_SITE_NAME=기온별플리 | By Degrees
 NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY=your_kakao_javascript_key
+DISCORD_ALERT_WEBHOOK_URL=https://discord.com/api/webhooks/...
+ALERT_COOLDOWN_SECONDS=1800
 ```
 
 `NEXT_PUBLIC_APP_URL`은 X 공유, 링크 복사, Open Graph 이미지 URL의 기준이 되므로 배포 URL과 일치해야 합니다.
+
+`DISCORD_ALERT_WEBHOOK_URL`은 선택값입니다. 값이 있으면 Spotify 429 rate limit 발생 시 Discord로 알림을 보내고, `ALERT_COOLDOWN_SECONDS` 동안 같은 route의 반복 알림을 억제합니다.
 
 ## Database
 
@@ -76,13 +82,13 @@ npm run migrate:status
 npm run migrate
 ```
 
-초기 스키마는 `migrations/001_init.sql`과 `sql/schema.sql`을 참고하세요.
+`migrations/003_music_search_cache.sql`은 Spotify 검색 결과를 Neon에 캐싱하기 위한 테이블입니다. 검색 결과는 24시간 동안 fresh cache로 사용하고, Spotify 429 발생 시 14일 이내 stale cache까지 fallback으로 사용합니다.
 
 ## Sharing Notes
 
 - `/preview`는 sessionStorage에 저장된 임시 플레이리스트를 Canvas PNG로 변환해 실제 `<img>`로 보여줍니다.
 - iOS/Android에서는 미리보기 이미지를 길게 눌러 사진 앱 또는 다운로드 폴더에 저장할 수 있습니다.
-- 링크 복사는 `NEXT_PUBLIC_APP_URL` 기준의 배포 URL을 사용합니다.
+- 링크 복사는 `NEXT_PUBLIC_APP_URL` 기준의 서비스 홈 URL을 사용합니다.
 - X 공유 문구는 플레이리스트 제목, 서비스 소개 문구, 해시태그로 구성됩니다.
 - X intent에는 URL을 넣지 않습니다. 모바일 X 작성 화면에서 사용자가 저장한 이미지를 직접 첨부할 수 있게 하기 위함입니다.
 - 카카오톡 링크 미리보기는 Open Graph 메타데이터를 사용합니다. 배포 후 미리보기가 갱신되지 않으면 Kakao Developers의 공유 디버거에서 캐시를 초기화해야 합니다.
@@ -106,13 +112,22 @@ npm run migrate
 
 관리자 로그인 쿠키가 있는 요청은 방문, 검색, 선택, 생성, 저장, 공유 통계에서 제외됩니다.
 
+## Operations
+
+- Spotify 검색은 먼저 서버 메모리 캐시를 확인하고, 없으면 Neon 검색 캐시를 확인한 뒤 Spotify Web API를 호출합니다.
+- Spotify가 429를 반환하면 stale cache를 fallback으로 사용하고, 캐시가 없을 때만 사용자에게 rate limit 안내 문구를 보여줍니다.
+- `DISCORD_ALERT_WEBHOOK_URL`이 설정되어 있으면 429 발생 시 Discord 알림을 보냅니다.
+- 장애 대응용 점검 팝업은 `app/page.tsx`의 `SHOW_MAINTENANCE_NOTICE`로 켜고 끌 수 있습니다.
+- Google 검색결과는 `app/layout.tsx` metadata와 `app/icon.tsx` 사이트 아이콘을 사용합니다. 반영은 Google 재크롤링 이후 적용됩니다.
+
 ## Deploy on Vercel
 
 1. GitHub repository를 Vercel에서 import합니다.
 2. Vercel Project Settings에 Environment Variables를 등록합니다.
 3. Neon database에 migration을 적용합니다.
 4. 배포 URL을 `NEXT_PUBLIC_APP_URL`에 반영합니다.
-5. 배포 후 모바일 Safari/Chrome에서 생성, 저장, X 공유, 링크 복사를 확인합니다.
+5. Discord 알림을 사용한다면 `DISCORD_ALERT_WEBHOOK_URL`을 등록합니다.
+6. 배포 후 모바일 Safari/Chrome에서 생성, 저장, X 공유, 링크 복사를 확인합니다.
 
 ## Scripts
 
@@ -129,9 +144,10 @@ npm run migrate:status
 
 - `app/create/page.tsx`: 플레이리스트 생성 화면
 - `app/preview/page.tsx`: 로컬 이미지 미리보기 화면
-- `app/boards/[slug]/page.tsx`: 공개 보드/공유 화면
+- `app/boards/[slug]/page.tsx`: 저장된 보드 조회 화면. 현재 기본 링크 공유 흐름에서는 사용하지 않음
 - `app/opengraph-image.tsx`: 루트 링크 미리보기 이미지
-- `app/boards/[slug]/opengraph-image.tsx`: 공개 보드 링크 미리보기 이미지
+- `app/icon.tsx`: 사이트 아이콘 / favicon 이미지
+- `app/boards/[slug]/opengraph-image.tsx`: 저장된 보드 링크 미리보기 이미지
 - `app/admin/page.tsx`: 관리자 통계 화면
 - `components/board-preview.tsx`: 9:16 플레이리스트 이미지 레이아웃
 - `components/create-board-client.tsx`: 생성 플로우 클라이언트 UI
@@ -141,5 +157,7 @@ npm run migrate:status
 - `lib/preview-canvas.ts`: Canvas 기반 저장용 이미지 생성
 - `lib/image-file.ts`: DOM to PNG capture helper
 - `lib/providers/music`: 음악 provider abstraction
+- `lib/db/music-search-cache.ts`: Neon 기반 Spotify 검색 캐시
 - `lib/analytics.ts`: 이벤트 통계 집계
+- `lib/alerts.ts`: Discord 운영 알림
 - `lib/db`: Neon Postgres 연결과 쿼리

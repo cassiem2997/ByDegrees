@@ -37,6 +37,7 @@
 
 - X: 문구 + 해시태그 intent
 - 링크 공유: 별도 복사 버튼
+- 링크 공유 URL: 서비스 홈 URL
 - X intent에는 URL을 넣지 않음
 - Instagram / Kakaotalk 직접 공유는 현재 MVP 제외
 
@@ -62,11 +63,14 @@
 
 - 포함
   - Spotify 메타데이터 검색
+  - Spotify 검색 캐시 / rate limit fallback
   - 결과 이미지 생성
   - 관리자 지표 확인
   - Open Graph 링크 미리보기
+  - Discord 운영 알림
 - 제외
   - 공개 보드 피드
+  - 공개 보드 URL 중심 공유
   - 유저 계정 시스템
   - 보드 수정
   - 커뮤니티 기능
