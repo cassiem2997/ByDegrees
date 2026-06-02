@@ -1,5 +1,9 @@
 import { assertServerEnv } from "@/lib/config";
 import { getCachedMusicSearch, setCachedMusicSearch } from "@/lib/db/music-search-cache";
+import {
+  getActiveServiceRateLimit,
+  setServiceRateLimit
+} from "@/lib/db/service-rate-limit";
 import { MusicArtistResult, MusicTrackResult } from "@/lib/types";
 import { MusicProvider } from "@/lib/providers/music/types";
 
@@ -42,6 +46,7 @@ let cachedToken: { value: string; expiresAt: number } | null = null;
 
 const SEARCH_CACHE_TTL_MS = 60 * 60 * 1000;
 const SEARCH_CACHE_STALE_TTL_MS = 6 * 60 * 60 * 1000;
+const SPOTIFY_SEARCH_RATE_LIMIT_SERVICE = "spotify-search";
 
 type SearchCacheEntry<T> = {
   value: T;
@@ -89,6 +94,27 @@ function setCachedSearch<T>(key: string, value: T) {
     expiresAt: now + SEARCH_CACHE_TTL_MS,
     staleUntil: now + SEARCH_CACHE_STALE_TTL_MS
   });
+}
+
+async function getStaleCachedMusicSearch<T extends "artist" | "track">(
+  kind: T,
+  cacheKey: string
+) {
+  const stale = getCachedSearch<T extends "artist" ? MusicArtistResult[] : MusicTrackResult[]>(
+    cacheKey,
+    true
+  );
+  if (stale) return stale;
+
+  const dbStale = await getCachedMusicSearch(kind, cacheKey, {
+    allowStale: true
+  });
+  if (dbStale) {
+    setCachedSearch(cacheKey, dbStale);
+    return dbStale;
+  }
+
+  return null;
 }
 
 function getRetryAfterSeconds(response: Response) {
@@ -179,6 +205,16 @@ export class SpotifyMusicProvider implements MusicProvider {
       return dbCached;
     }
 
+    const activeRateLimit = await getActiveServiceRateLimit(
+      SPOTIFY_SEARCH_RATE_LIMIT_SERVICE
+    );
+    if (activeRateLimit) {
+      const stale = await getStaleCachedMusicSearch("artist", cacheKey);
+      if (stale) return stale;
+
+      throw new SpotifyRateLimitError(activeRateLimit.retryAfterSeconds);
+    }
+
     const token = await getSpotifyToken();
     const params = new URLSearchParams({
       q: query,
@@ -198,6 +234,12 @@ export class SpotifyMusicProvider implements MusicProvider {
     );
 
     if (response.status === 429) {
+      const retryAfterSeconds = getRetryAfterSeconds(response);
+      await setServiceRateLimit(
+        SPOTIFY_SEARCH_RATE_LIMIT_SERVICE,
+        retryAfterSeconds
+      );
+
       const stale = getCachedSearch<MusicArtistResult[]>(cacheKey, true);
       if (stale) return stale;
 
@@ -209,7 +251,7 @@ export class SpotifyMusicProvider implements MusicProvider {
         return dbStale;
       }
 
-      throw new SpotifyRateLimitError(getRetryAfterSeconds(response));
+      throw new SpotifyRateLimitError(retryAfterSeconds);
     }
 
     if (!response.ok) {
@@ -245,6 +287,16 @@ export class SpotifyMusicProvider implements MusicProvider {
       return dbCached;
     }
 
+    const activeRateLimit = await getActiveServiceRateLimit(
+      SPOTIFY_SEARCH_RATE_LIMIT_SERVICE
+    );
+    if (activeRateLimit) {
+      const stale = await getStaleCachedMusicSearch("track", cacheKey);
+      if (stale) return stale;
+
+      throw new SpotifyRateLimitError(activeRateLimit.retryAfterSeconds);
+    }
+
     const token = await getSpotifyToken();
     const params = new URLSearchParams({
       q: query,
@@ -264,6 +316,12 @@ export class SpotifyMusicProvider implements MusicProvider {
     );
 
     if (response.status === 429) {
+      const retryAfterSeconds = getRetryAfterSeconds(response);
+      await setServiceRateLimit(
+        SPOTIFY_SEARCH_RATE_LIMIT_SERVICE,
+        retryAfterSeconds
+      );
+
       const stale = getCachedSearch<MusicTrackResult[]>(cacheKey, true);
       if (stale) return stale;
 
@@ -275,7 +333,7 @@ export class SpotifyMusicProvider implements MusicProvider {
         return dbStale;
       }
 
-      throw new SpotifyRateLimitError(getRetryAfterSeconds(response));
+      throw new SpotifyRateLimitError(retryAfterSeconds);
     }
 
     if (!response.ok) {
