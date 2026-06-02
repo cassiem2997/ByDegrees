@@ -245,7 +245,7 @@ export default async function AdminPage({
 
         <PeriodNavigation period={period} />
 
-        <div className="grid gap-4 xl:grid-cols-4">
+        <div className="grid grid-cols-[repeat(4,minmax(180px,1fr))] gap-4 overflow-x-auto pb-1">
           <MetricCard title="방문자 수" label={period.metricLabel} tone="sky" values={summary.visitors} />
           <MetricCard title="플레이리스트 생성 완료" label={period.metricLabel} tone="mint" values={summary.boardsCreated} />
           <MetricCard title="이미지 저장 횟수" label={period.metricLabel} tone="gold" values={summary.imageSaves} />
@@ -288,13 +288,13 @@ export default async function AdminPage({
               value={formatRate(summary.funnel.visitToCreateRate)}
             />
             <RateCard
-              caption="생성 완료 대비 저장"
+              caption="생성 완료 세션 중 저장"
               progress={summary.funnel.createToSaveRate}
               title="생성 → 저장"
               value={formatRate(summary.funnel.createToSaveRate)}
             />
             <RateCard
-              caption="생성 완료 대비 공유"
+              caption="생성 완료 세션 중 공유"
               progress={summary.funnel.createToShareRate}
               title="생성 → 공유"
               value={formatRate(summary.funnel.createToShareRate)}

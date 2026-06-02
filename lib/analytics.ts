@@ -145,6 +145,41 @@ export async function getAdminSummary(
       [rangeStart, rangeEnd]
     )) as { current: number; cumulative: number }[];
 
+    const [funnelSessionCounts] = (await sql(
+      `
+        with completed_sessions as (
+          select distinct session_id
+          from events
+          where event_type = 'create_board'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+        ),
+        saved_sessions as (
+          select distinct session_id
+          from events
+          where event_type = 'save_image'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+        ),
+        shared_sessions as (
+          select distinct session_id
+          from events
+          where event_type = 'share'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+        )
+        select
+          (select count(*) from completed_sessions)::int as completed_sessions,
+          (select count(*) from saved_sessions where session_id in (select session_id from completed_sessions))::int as saved_completed_sessions,
+          (select count(*) from shared_sessions where session_id in (select session_id from completed_sessions))::int as shared_completed_sessions
+      `,
+      [rangeStart, rangeEnd]
+    )) as {
+      completed_sessions: number;
+      saved_completed_sessions: number;
+      shared_completed_sessions: number;
+    }[];
+
     const visitorCountries = (await sql(
       `
         select metadata->>'country' as name, count(distinct session_id)::int as count
@@ -332,6 +367,9 @@ export async function getAdminSummary(
     const currentBoards = completionCounts?.current ?? 0;
     const currentSaves = imageSaveCounts?.current ?? 0;
     const currentShares = shareCounts?.current ?? 0;
+    const completedSessions = funnelSessionCounts?.completed_sessions ?? 0;
+    const savedCompletedSessions = funnelSessionCounts?.saved_completed_sessions ?? 0;
+    const sharedCompletedSessions = funnelSessionCounts?.shared_completed_sessions ?? 0;
     const rowsWithBoards = temperatureRows.filter((row) => row.total_boards > 0);
     const emptiest = rowsWithBoards
       .filter((row) => row.empty_boards > 0)
@@ -358,9 +396,9 @@ export async function getAdminSummary(
         cumulative: shareCounts?.cumulative ?? 0
       },
       funnel: {
-        visitToCreateRate: rate(currentBoards, currentVisitors),
-        createToSaveRate: rate(currentSaves, currentBoards),
-        createToShareRate: rate(currentShares, currentBoards),
+        visitToCreateRate: rate(completedSessions, currentVisitors),
+        createToSaveRate: rate(savedCompletedSessions, completedSessions),
+        createToShareRate: rate(sharedCompletedSessions, completedSessions),
         averageSongsPerBoard: averageSongs?.average ?? 0
       },
       temperatureInsights: {
