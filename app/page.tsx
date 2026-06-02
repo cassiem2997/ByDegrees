@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { PageViewTracker } from "@/components/page-view-tracker";
 
-const SHOW_MAINTENANCE_NOTICE = true;
+const SHOW_MAINTENANCE_NOTICE = false;
 
 export default function HomePage() {
   return (
