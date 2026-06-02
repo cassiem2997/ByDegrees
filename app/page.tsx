@@ -17,7 +17,7 @@ export default function HomePage() {
       >
         <section className="flex flex-1 flex-col items-center justify-center pb-28 pt-12 text-center">
           <Image
-            alt="기온별플리 플레이리스트 생성 화면 목업"
+            alt="음악으로 기록하는 여러분의 계절을 공유해주세요 🎧"
             className="mb-10 h-auto w-full max-w-[270px] sm:max-w-[320px]"
             height={3096}
             priority

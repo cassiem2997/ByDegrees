@@ -7,8 +7,15 @@ const siteDescription = "음악으로 기록하는 여러분의 계절을 공유
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  applicationName: siteTitle,
   title: siteTitle,
   description: siteDescription,
+  alternates: {
+    canonical: "/"
+  },
+  icons: {
+    icon: "/icon"
+  },
   openGraph: {
     title: siteTitle,
     description: siteDescription,
