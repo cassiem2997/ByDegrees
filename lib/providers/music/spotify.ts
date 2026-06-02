@@ -39,6 +39,70 @@ type SpotifyArtistSearchResponse = {
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 
+const SEARCH_CACHE_TTL_MS = 60 * 60 * 1000;
+const SEARCH_CACHE_STALE_TTL_MS = 6 * 60 * 60 * 1000;
+
+type SearchCacheEntry<T> = {
+  value: T;
+  expiresAt: number;
+  staleUntil: number;
+};
+
+const searchCache = new Map<string, SearchCacheEntry<unknown>>();
+
+export class SpotifyRateLimitError extends Error {
+  retryAfterSeconds: number | null;
+
+  constructor(retryAfterSeconds: number | null) {
+    super("Spotify search rate limit exceeded");
+    this.name = "SpotifyRateLimitError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+export function isSpotifyRateLimitError(error: unknown): error is SpotifyRateLimitError {
+  return error instanceof SpotifyRateLimitError;
+}
+
+function normalizeCachePart(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function getCachedSearch<T>(key: string, allowStale = false): T | null {
+  const entry = searchCache.get(key) as SearchCacheEntry<T> | undefined;
+  if (!entry) return null;
+
+  const now = Date.now();
+  if (entry.expiresAt > now || (allowStale && entry.staleUntil > now)) {
+    return entry.value;
+  }
+
+  searchCache.delete(key);
+  return null;
+}
+
+function setCachedSearch<T>(key: string, value: T) {
+  const now = Date.now();
+  searchCache.set(key, {
+    value,
+    expiresAt: now + SEARCH_CACHE_TTL_MS,
+    staleUntil: now + SEARCH_CACHE_STALE_TTL_MS
+  });
+}
+
+function getRetryAfterSeconds(response: Response) {
+  const retryAfter = response.headers.get("Retry-After");
+  if (!retryAfter) return null;
+
+  const seconds = Number(retryAfter);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds);
+
+  const retryAt = Date.parse(retryAfter);
+  if (Number.isNaN(retryAt)) return null;
+
+  return Math.max(0, Math.ceil((retryAt - Date.now()) / 1000));
+}
+
 async function fetchSpotify(
   url: string,
   options: RequestInit,
@@ -104,6 +168,10 @@ async function getSpotifyToken() {
 
 export class SpotifyMusicProvider implements MusicProvider {
   async searchArtists(query: string): Promise<MusicArtistResult[]> {
+    const cacheKey = `artist:${normalizeCachePart(query)}`;
+    const cached = getCachedSearch<MusicArtistResult[]>(cacheKey);
+    if (cached) return cached;
+
     const token = await getSpotifyToken();
     const params = new URLSearchParams({
       q: query,
@@ -122,6 +190,12 @@ export class SpotifyMusicProvider implements MusicProvider {
       }
     );
 
+    if (response.status === 429) {
+      const stale = getCachedSearch<MusicArtistResult[]>(cacheKey, true);
+      if (stale) return stale;
+      throw new SpotifyRateLimitError(getRetryAfterSeconds(response));
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Spotify artist search failed (${response.status}): ${errorText}`);
@@ -129,7 +203,7 @@ export class SpotifyMusicProvider implements MusicProvider {
 
     const data = (await response.json()) as SpotifyArtistSearchResponse;
 
-    return data.artists.items.map((artist) => ({
+    const artists: MusicArtistResult[] = data.artists.items.map((artist) => ({
       provider: "spotify",
       providerArtistId: artist.id,
       name: artist.name,
@@ -138,9 +212,16 @@ export class SpotifyMusicProvider implements MusicProvider {
       followerCount: artist.followers?.total ?? 0,
       genres: artist.genres ?? []
     }));
+
+    setCachedSearch(cacheKey, artists);
+    return artists;
   }
 
   async searchTracks(query: string): Promise<MusicTrackResult[]> {
+    const cacheKey = `track:${normalizeCachePart(query)}`;
+    const cached = getCachedSearch<MusicTrackResult[]>(cacheKey);
+    if (cached) return cached;
+
     const token = await getSpotifyToken();
     const params = new URLSearchParams({
       q: query,
@@ -159,6 +240,12 @@ export class SpotifyMusicProvider implements MusicProvider {
       }
     );
 
+    if (response.status === 429) {
+      const stale = getCachedSearch<MusicTrackResult[]>(cacheKey, true);
+      if (stale) return stale;
+      throw new SpotifyRateLimitError(getRetryAfterSeconds(response));
+    }
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Spotify track search failed (${response.status}): ${errorText}`);
@@ -166,7 +253,7 @@ export class SpotifyMusicProvider implements MusicProvider {
 
     const data = (await response.json()) as SpotifySearchResponse;
 
-    return data.tracks.items.map((track) => ({
+    const tracks: MusicTrackResult[] = data.tracks.items.map((track) => ({
       provider: "spotify",
       providerTrackId: track.id,
       title: track.name,
@@ -176,5 +263,8 @@ export class SpotifyMusicProvider implements MusicProvider {
       externalUrl: track.external_urls.spotify,
       previewUrl: track.preview_url
     }));
+
+    setCachedSearch(cacheKey, tracks);
+    return tracks;
   }
 }
