@@ -10,7 +10,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_SITE_NAME: z.string().default("By Degrees"),
   NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY: z.string().optional(),
   DISCORD_ALERT_WEBHOOK_URL: z.string().url().optional(),
-  ALERT_COOLDOWN_SECONDS: z.coerce.number().int().positive().optional()
+  ALERT_COOLDOWN_SECONDS: z.coerce.number().int().positive().optional(),
+  MAINTENANCE_EMAIL_FROM: z.string().optional(),
+  MAINTENANCE_NOTIFY_BATCH_SIZE: z.coerce.number().int().positive().max(500).optional()
 });
 
 const parsed = envSchema.safeParse(process.env);
