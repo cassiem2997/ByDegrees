@@ -32,6 +32,7 @@ export function SongCard({
               fill
               sizes="120px"
               src={song.albumArtUrl}
+              unoptimized
             />
           ) : null}
         </div>
@@ -79,6 +80,7 @@ export function SongCard({
             fill
             sizes="(max-width: 768px) 33vw, 180px"
             src={song.albumArtUrl}
+            unoptimized
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-peach to-sky text-sm font-semibold text-white">
