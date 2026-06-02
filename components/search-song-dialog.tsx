@@ -16,6 +16,7 @@ export function SearchSongDialog({
   onClose,
   onConfirmDuplicate,
   onDuplicateCancel,
+  onRateLimit,
   onSelect
 }: {
   open: boolean;
@@ -24,6 +25,7 @@ export function SearchSongDialog({
   onClose: () => void;
   onConfirmDuplicate?: () => void;
   onDuplicateCancel?: () => void;
+  onRateLimit?: () => void;
   onSelect: (song: MusicTrackResult) => void;
 }) {
   const [query, setQuery] = useState(artistName ?? "");
@@ -51,6 +53,9 @@ export function SearchSongDialog({
 
       if (!res.ok) {
         setResults([]);
+        if (res.status === 429) {
+          onRateLimit?.();
+        }
         setErrorMessage(data.error ?? "곡 검색 중 오류가 발생했습니다.");
         return;
       }

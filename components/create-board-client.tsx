@@ -67,6 +67,7 @@ export function CreateBoardClient({
   const [artistSearchError, setArtistSearchError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [showSaveToast, setShowSaveToast] = useState(false);
+  const [showSpotifyRateLimitNotice, setShowSpotifyRateLimitNotice] = useState(false);
   const [pendingDuplicateSong, setPendingDuplicateSong] = useState<MusicTrackResult | null>(null);
   const [selectionTarget, setSelectionTarget] = useState<SelectionTarget>(null);
   const [rows, setRows] = useState<BoardRow[]>(
@@ -190,6 +191,9 @@ export function CreateBoardClient({
 
       if (!response.ok) {
         setArtistResults([]);
+        if (response.status === 429) {
+          setShowSpotifyRateLimitNotice(true);
+        }
         setArtistSearchError(data.error ?? "아티스트 검색 중 오류가 발생했습니다.");
         return;
       }
@@ -504,6 +508,7 @@ export function CreateBoardClient({
               ))}
           </div>
         </main>
+        {showSpotifyRateLimitNotice ? <SpotifyRateLimitNotice /> : null}
       </div>
     );
   }
@@ -575,9 +580,33 @@ export function CreateBoardClient({
         }}
         onClose={() => setSelectionTarget(null)}
         onDuplicateCancel={() => setPendingDuplicateSong(null)}
+        onRateLimit={() => setShowSpotifyRateLimitNotice(true)}
         onSelect={handleSongSelect}
         open={selectionTarget !== null}
       />
+      {showSpotifyRateLimitNotice ? <SpotifyRateLimitNotice /> : null}
+    </div>
+  );
+}
+
+function SpotifyRateLimitNotice() {
+  return (
+    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#fcf8f7]/58 px-8 backdrop-blur-[2px]">
+      <section className="w-full max-w-[350px] rounded-[28px] border border-[#e1dbd8] bg-[#fcf8f7]/95 px-7 py-7 text-center shadow-[0_24px_60px_rgba(28,27,27,0.16)]">
+        <p className="text-[34px] leading-none" aria-hidden="true">
+          🚧
+        </p>
+        <h1 className="mt-4 text-[24px] font-extrabold tracking-[-0.06em] text-[#1c1b1b]">
+          잠시 점검 중입니다
+        </h1>
+        <p className="mt-4 text-[15px] font-semibold leading-[1.55] tracking-[-0.04em] text-[#5f5e5e]">
+          Spotify 검색 요청이 몰려
+          <br />
+          잠시 쉬어가고 있어요.
+          <br />
+          조금 뒤 다시 시도해주세요.
+        </p>
+      </section>
     </div>
   );
 }
