@@ -1,4 +1,5 @@
 import { assertServerEnv } from "@/lib/config";
+import { getCachedMusicSearch, setCachedMusicSearch } from "@/lib/db/music-search-cache";
 import { MusicArtistResult, MusicTrackResult } from "@/lib/types";
 import { MusicProvider } from "@/lib/providers/music/types";
 
@@ -172,6 +173,12 @@ export class SpotifyMusicProvider implements MusicProvider {
     const cached = getCachedSearch<MusicArtistResult[]>(cacheKey);
     if (cached) return cached;
 
+    const dbCached = await getCachedMusicSearch("artist", cacheKey);
+    if (dbCached) {
+      setCachedSearch(cacheKey, dbCached);
+      return dbCached;
+    }
+
     const token = await getSpotifyToken();
     const params = new URLSearchParams({
       q: query,
@@ -193,6 +200,15 @@ export class SpotifyMusicProvider implements MusicProvider {
     if (response.status === 429) {
       const stale = getCachedSearch<MusicArtistResult[]>(cacheKey, true);
       if (stale) return stale;
+
+      const dbStale = await getCachedMusicSearch("artist", cacheKey, {
+        allowStale: true
+      });
+      if (dbStale) {
+        setCachedSearch(cacheKey, dbStale);
+        return dbStale;
+      }
+
       throw new SpotifyRateLimitError(getRetryAfterSeconds(response));
     }
 
@@ -214,6 +230,7 @@ export class SpotifyMusicProvider implements MusicProvider {
     }));
 
     setCachedSearch(cacheKey, artists);
+    await setCachedMusicSearch("artist", cacheKey, artists);
     return artists;
   }
 
@@ -221,6 +238,12 @@ export class SpotifyMusicProvider implements MusicProvider {
     const cacheKey = `track:${normalizeCachePart(query)}`;
     const cached = getCachedSearch<MusicTrackResult[]>(cacheKey);
     if (cached) return cached;
+
+    const dbCached = await getCachedMusicSearch("track", cacheKey);
+    if (dbCached) {
+      setCachedSearch(cacheKey, dbCached);
+      return dbCached;
+    }
 
     const token = await getSpotifyToken();
     const params = new URLSearchParams({
@@ -243,6 +266,15 @@ export class SpotifyMusicProvider implements MusicProvider {
     if (response.status === 429) {
       const stale = getCachedSearch<MusicTrackResult[]>(cacheKey, true);
       if (stale) return stale;
+
+      const dbStale = await getCachedMusicSearch("track", cacheKey, {
+        allowStale: true
+      });
+      if (dbStale) {
+        setCachedSearch(cacheKey, dbStale);
+        return dbStale;
+      }
+
       throw new SpotifyRateLimitError(getRetryAfterSeconds(response));
     }
 
@@ -265,6 +297,7 @@ export class SpotifyMusicProvider implements MusicProvider {
     }));
 
     setCachedSearch(cacheKey, tracks);
+    await setCachedMusicSearch("track", cacheKey, tracks);
     return tracks;
   }
 }
