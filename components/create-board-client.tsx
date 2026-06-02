@@ -600,7 +600,7 @@ function SpotifyRateLimitNotice() {
           잠시 점검 중입니다
         </h1>
         <p className="mt-4 text-[15px] font-semibold leading-[1.55] tracking-[-0.04em] text-[#5f5e5e]">
-          Spotify 검색 요청이 몰려
+          음악 검색 요청이 몰려
           <br />
           잠시 쉬어가고 있어요.
           <br />
