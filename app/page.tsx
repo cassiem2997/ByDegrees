@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { MaintenanceNotificationForm } from "@/components/maintenance-notification-form";
 import { PageViewTracker } from "@/components/page-view-tracker";
 
 const SHOW_MAINTENANCE_NOTICE = true;
@@ -56,6 +57,7 @@ export default function HomePage() {
               <br />
               조금 뒤 다시 찾아와주세요.
             </p>
+            <MaintenanceNotificationForm />
           </section>
         </div>
       ) : null}

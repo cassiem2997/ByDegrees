@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { AdminChart } from "@/components/admin-chart";
+import { AdminMaintenanceNotifyButton } from "@/components/admin-maintenance-notify-button";
 import { SiteShell } from "@/components/layout/site-shell";
 import { getAdminSummary } from "@/lib/analytics";
 import {
@@ -17,6 +18,8 @@ import {
   normalizeAdminPeriod,
   shiftAdminPeriod
 } from "@/lib/admin-period";
+import { getMaintenanceSubscriberStats } from "@/lib/db/maintenance-subscribers";
+import { canSendMaintenanceEmail } from "@/lib/email";
 import { cn, formatShortNumber } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -228,7 +231,11 @@ export default async function AdminPage({
 }) {
   const params = await searchParams;
   const period = normalizeAdminPeriod(params.period, params.date);
-  const summary = await getAdminSummary(period);
+  const [summary, maintenanceStats] = await Promise.all([
+    getAdminSummary(period),
+    getMaintenanceSubscriberStats()
+  ]);
+  const canSendMaintenanceNotifications = canSendMaintenanceEmail();
 
   return (
     <SiteShell>
@@ -244,6 +251,41 @@ export default async function AdminPage({
         </div>
 
         <PeriodNavigation period={period} />
+
+        <div className="rounded-[30px] border border-white/75 bg-white/75 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur md:flex md:items-center md:justify-between md:gap-5">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral">Maintenance</p>
+            <h2 className="mt-1 text-xl font-semibold text-ink">점검 완료 알림</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/56">
+              미발송 신청자에게 점검 완료 메일을 수동으로 발송합니다. 성공한 대상은 notified_at이 기록됩니다.
+            </p>
+            {!canSendMaintenanceNotifications ? (
+              <p className="mt-2 text-xs font-semibold text-coral">
+                RESEND_API_KEY와 MAINTENANCE_EMAIL_FROM 설정이 필요합니다.
+              </p>
+            ) : null}
+          </div>
+          <div className="mt-4 grid gap-3 md:mt-0 md:min-w-[360px] md:grid-cols-[1fr_auto] md:items-center">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-ink/5 px-3 py-3">
+                <p className="text-xs text-ink/48">전체</p>
+                <p className="mt-1 text-lg font-semibold text-ink">{maintenanceStats.total}</p>
+              </div>
+              <div className="rounded-2xl bg-gold/18 px-3 py-3">
+                <p className="text-xs text-ink/48">미발송</p>
+                <p className="mt-1 text-lg font-semibold text-ink">{maintenanceStats.pending}</p>
+              </div>
+              <div className="rounded-2xl bg-mint/16 px-3 py-3">
+                <p className="text-xs text-ink/48">발송완료</p>
+                <p className="mt-1 text-lg font-semibold text-ink">{maintenanceStats.notified}</p>
+              </div>
+            </div>
+            <AdminMaintenanceNotifyButton
+              disabled={!canSendMaintenanceNotifications}
+              pendingCount={maintenanceStats.pending}
+            />
+          </div>
+        </div>
 
         <div className="grid grid-cols-[repeat(4,minmax(180px,1fr))] gap-4 overflow-x-auto pb-1">
           <MetricCard title="방문자 수" label={period.metricLabel} tone="sky" values={summary.visitors} />
