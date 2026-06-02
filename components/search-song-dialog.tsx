@@ -148,6 +148,7 @@ export function SearchSongDialog({
                       fill
                       sizes="56px"
                       src={song.albumArtUrl}
+                      unoptimized
                     />
                   ) : null}
                 </div>
