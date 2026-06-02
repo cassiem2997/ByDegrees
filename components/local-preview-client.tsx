@@ -247,7 +247,7 @@ export function LocalPreviewClient() {
             </p>
           ) : null}
           {showLinkCopiedToast ? (
-            <p className="pointer-events-none absolute bottom-[calc(100%-4px)] left-[calc(83.333333%-1rem)] z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.9)] px-5 py-3 text-center text-[14px] font-semibold leading-[1.35] text-[#1c1b1b] shadow-[0_14px_28px_rgba(0,0,0,0.13)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[14px] after:border-t-[14px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.9)]">
+            <p className="pointer-events-none fixed left-1/2 top-1/2 z-50 w-[min(280px,calc(100%-64px))] -translate-x-1/2 -translate-y-1/2 rounded-[22px] bg-[rgba(216,211,208,0.92)] px-6 py-4 text-center text-[17px] font-bold leading-[1.4] tracking-[-0.04em] text-[#1c1b1b] shadow-[0_18px_34px_rgba(0,0,0,0.16)] backdrop-blur-sm">
               링크가 복사되었습니다.
             </p>
           ) : null}
@@ -287,7 +287,7 @@ function LocalPreviewActions({
   showSaveHint: boolean;
 }) {
   const [saveError, setSaveError] = useState("");
-  const shareUrl = boardSlug === "preview" ? getAppShareUrl() : getAppShareUrl(`/boards/${boardSlug}`);
+  const shareUrl = getAppShareUrl();
 
   async function handleDownload() {
     if (!previewImageReady) {

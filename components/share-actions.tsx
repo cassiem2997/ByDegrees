@@ -80,7 +80,7 @@ export function ShareActions({
   const [linkCopied, setLinkCopied] = useState(false);
   const saveLongPressTimeoutRef = useRef<number | null>(null);
   const saveLongPressLoggedRef = useRef(false);
-  const boardUrl = absoluteUrl(`/boards/${boardSlug}`);
+  const shareUrl = absoluteUrl();
   const twitterIntentUrl = buildXIntentUrl(buildXShareText(boardTitle, artistName));
 
   function clearSaveLongPressTimeout() {
@@ -139,7 +139,7 @@ export function ShareActions({
 
   async function handleCopyLink() {
     if (!navigator.clipboard) return;
-    await navigator.clipboard.writeText(boardUrl);
+    await navigator.clipboard.writeText(shareUrl);
     setLinkCopied(true);
     window.setTimeout(() => {
       setLinkCopied(false);
@@ -186,7 +186,7 @@ export function ShareActions({
         onXShare={handleTwitterShare}
       />
       {linkCopied ? (
-        <p className="text-center text-xs font-semibold text-[#4f4a47]">
+        <p className="pointer-events-none fixed left-1/2 top-1/2 z-50 w-[min(280px,calc(100%-64px))] -translate-x-1/2 -translate-y-1/2 rounded-[22px] bg-[rgba(216,211,208,0.92)] px-6 py-4 text-center text-[17px] font-bold leading-[1.4] tracking-[-0.04em] text-[#1c1b1b] shadow-[0_18px_34px_rgba(0,0,0,0.16)] backdrop-blur-sm">
           링크가 복사되었습니다.
         </p>
       ) : null}
