@@ -2,6 +2,7 @@ export type EventType =
   | "page_view"
   | "create_board"
   | "save_image"
+  | "save_image_long_press"
   | "share"
   | "search_artist"
   | "select_artist"

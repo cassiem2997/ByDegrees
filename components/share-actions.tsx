@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Download } from "lucide-react";
 
 import { ShareChannelButtons } from "@/components/share-channel-buttons";
@@ -78,8 +78,35 @@ export function ShareActions({
   const [savedImageUrl, setSavedImageUrl] = useState("");
   const [saveError, setSaveError] = useState("");
   const [linkCopied, setLinkCopied] = useState(false);
+  const saveLongPressTimeoutRef = useRef<number | null>(null);
+  const saveLongPressLoggedRef = useRef(false);
   const boardUrl = absoluteUrl(`/boards/${boardSlug}`);
   const twitterIntentUrl = buildXIntentUrl(buildXShareText(boardTitle, artistName));
+
+  function clearSaveLongPressTimeout() {
+    if (saveLongPressTimeoutRef.current === null) return;
+    window.clearTimeout(saveLongPressTimeoutRef.current);
+    saveLongPressTimeoutRef.current = null;
+  }
+
+  async function logSaveLongPress(trigger: "long_press" | "context_menu") {
+    if (saveLongPressLoggedRef.current) return;
+
+    saveLongPressLoggedRef.current = true;
+    await logClientEvent("save_image_long_press", {
+      board_id: boardId,
+      board_slug: boardSlug,
+      board_title: boardTitle,
+      trigger
+    });
+  }
+
+  function handleSavedImagePointerDown() {
+    clearSaveLongPressTimeout();
+    saveLongPressTimeoutRef.current = window.setTimeout(() => {
+      void logSaveLongPress("long_press");
+    }, 650);
+  }
 
   async function handleDownload() {
     const element = document.getElementById(captureId);
@@ -142,6 +169,11 @@ export function ShareActions({
           <img
             alt={`${boardTitle} 저장용 이미지`}
             className="mx-auto w-full max-w-[260px] rounded-[14px]"
+            onContextMenu={() => void logSaveLongPress("context_menu")}
+            onPointerCancel={clearSaveLongPressTimeout}
+            onPointerDown={handleSavedImagePointerDown}
+            onPointerLeave={clearSaveLongPressTimeout}
+            onPointerUp={clearSaveLongPressTimeout}
             src={savedImageUrl}
           />
           <p className="mt-3 text-xs font-semibold text-[#77716e]">

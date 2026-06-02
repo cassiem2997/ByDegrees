@@ -238,7 +238,7 @@ export default async function AdminPage({
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-coral">Admin Dashboard</p>
             <h1 className="text-3xl font-semibold text-ink">By Degrees 운영 통계</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/56">
-              기간을 넘겨보며 방문자 수, 이미지 저장 수, 공유 수를 확인할 수 있습니다.
+              기간을 넘겨보며 방문자 수, 이미지 길게 누른 횟수, 공유 수를 확인할 수 있습니다.
             </p>
           </div>
         </div>
@@ -248,7 +248,7 @@ export default async function AdminPage({
         <div className="grid grid-cols-[repeat(4,minmax(180px,1fr))] gap-4 overflow-x-auto pb-1">
           <MetricCard title="방문자 수" label={period.metricLabel} tone="sky" values={summary.visitors} />
           <MetricCard title="플레이리스트 생성 완료" label={period.metricLabel} tone="mint" values={summary.boardsCreated} />
-          <MetricCard title="이미지 저장 횟수" label={period.metricLabel} tone="gold" values={summary.imageSaves} />
+          <MetricCard title="이미지 길게 누른 횟수" label={period.metricLabel} tone="gold" values={summary.imageSaves} />
           <MetricCard title="이미지 및 링크 공유 횟수" label={period.metricLabel} tone="coral" values={summary.shares} />
         </div>
 
@@ -268,8 +268,8 @@ export default async function AdminPage({
               value={summary.boardsCreated.current}
             />
             <FunnelStepCard
-              caption="저장 버튼을 누른 횟수"
-              title="이미지 저장"
+              caption="저장용 이미지를 길게 누른 횟수"
+              title="이미지 길게 누름"
               tone="gold"
               value={summary.imageSaves.current}
             />

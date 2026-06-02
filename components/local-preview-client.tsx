@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, Link2 } from "lucide-react";
 
 import { BoardPreview } from "@/components/board-preview";
@@ -82,6 +82,8 @@ export function LocalPreviewClient() {
   const [previewImageError, setPreviewImageError] = useState("");
   const [showSaveHint, setShowSaveHint] = useState(false);
   const [showLinkCopiedToast, setShowLinkCopiedToast] = useState(false);
+  const saveLongPressTimeoutRef = useRef<number | null>(null);
+  const saveLongPressLoggedRef = useRef(false);
 
   useEffect(() => {
     const rawBoard = window.sessionStorage.getItem(PREVIEW_STORAGE_KEY);
@@ -136,6 +138,35 @@ export function LocalPreviewClient() {
     return () => window.clearTimeout(timeout);
   }, [showLinkCopiedToast]);
 
+  useEffect(() => {
+    saveLongPressLoggedRef.current = false;
+  }, [board?.id]);
+
+  function clearSaveLongPressTimeout() {
+    if (saveLongPressTimeoutRef.current === null) return;
+    window.clearTimeout(saveLongPressTimeoutRef.current);
+    saveLongPressTimeoutRef.current = null;
+  }
+
+  async function logSaveLongPress(trigger: "long_press" | "context_menu") {
+    if (!board || saveLongPressLoggedRef.current) return;
+
+    saveLongPressLoggedRef.current = true;
+    await logClientEvent("save_image_long_press", {
+      board_id: board.id,
+      board_slug: board.slug,
+      board_title: board.title,
+      trigger
+    });
+  }
+
+  function handlePreviewImagePointerDown() {
+    clearSaveLongPressTimeout();
+    saveLongPressTimeoutRef.current = window.setTimeout(() => {
+      void logSaveLongPress("long_press");
+    }, 650);
+  }
+
   if (!loaded) {
     return <div className="min-h-screen bg-[#fcf8f7]" />;
   }
@@ -174,6 +205,11 @@ export function LocalPreviewClient() {
           <img
             alt={`${board.title} 미리보기 이미지`}
             className="mx-auto w-full max-w-[370px] rounded-[2px]"
+            onContextMenu={() => void logSaveLongPress("context_menu")}
+            onPointerCancel={clearSaveLongPressTimeout}
+            onPointerDown={handlePreviewImagePointerDown}
+            onPointerLeave={clearSaveLongPressTimeout}
+            onPointerUp={clearSaveLongPressTimeout}
             src={previewImageUrl}
           />
         ) : previewImageError ? (

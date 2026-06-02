@@ -125,7 +125,7 @@ export async function getAdminSummary(
           end)::int as current,
           count(*)::int as cumulative
         from events
-        where event_type = 'save_image'
+        where event_type = 'save_image_long_press'
       `,
       [rangeStart, rangeEnd]
     )) as { current: number; cumulative: number }[];
@@ -157,7 +157,7 @@ export async function getAdminSummary(
         saved_sessions as (
           select distinct session_id
           from events
-          where event_type = 'save_image'
+          where event_type = 'save_image_long_press'
             and ($1::timestamptz is null or created_at >= $1::timestamptz)
             and ($2::timestamptz is null or created_at < $2::timestamptz)
         ),
@@ -345,7 +345,7 @@ export async function getAdminSummary(
             (created_at at time zone 'Asia/Seoul')::date as day,
             count(distinct case when event_type = 'page_view' then session_id end)::int as pageviews,
             coalesce(sum(case when event_type = 'create_board' then 1 else 0 end), 0)::int as creates,
-            coalesce(sum(case when event_type = 'save_image' then 1 else 0 end), 0)::int as saves,
+            coalesce(sum(case when event_type = 'save_image_long_press' then 1 else 0 end), 0)::int as saves,
             coalesce(sum(case when event_type = 'share' then 1 else 0 end), 0)::int as shares
           from events
           group by (created_at at time zone 'Asia/Seoul')::date

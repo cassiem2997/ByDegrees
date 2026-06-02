@@ -13,7 +13,7 @@ export function AdminChart({
   const metricLabel = {
     pageViews: "방문",
     creates: "생성",
-    saves: "저장",
+    saves: "길게 누름",
     shares: "공유"
   }[metric];
 
