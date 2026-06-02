@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           items: [],
-          error: "Spotify 검색 요청이 몰려 잠시 쉬는 중이에요. 잠시 후 다시 시도해주세요.",
+          error: "Spotify 검색이 요청이 몰려 잠시 쉬는 중이에요.\n잠시 후 다시 시도해주세요.",
           retryAfterSeconds: error.retryAfterSeconds
         },
         { status: 429 }

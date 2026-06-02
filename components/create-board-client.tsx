@@ -469,7 +469,7 @@ export function CreateBoardClient({
             ) : null}
 
             {!artistSearchLoading && artistResults.length === 0 && artistSearchError ? (
-              <p className="py-6 text-center text-[13px] font-semibold text-[#aaa5a2]">
+              <p className="whitespace-pre-line py-6 text-center text-[13px] font-semibold text-[#aaa5a2]">
                 {artistSearchError}
               </p>
             ) : null}

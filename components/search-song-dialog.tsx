@@ -122,7 +122,7 @@ export function SearchSongDialog({
           ) : null}
 
           {!loading && results.length === 0 && errorMessage ? (
-            <p className="py-6 text-center text-[13px] font-semibold text-[#aaa5a2]">
+            <p className="whitespace-pre-line py-6 text-center text-[13px] font-semibold text-[#aaa5a2]">
               {errorMessage}
             </p>
           ) : null}
