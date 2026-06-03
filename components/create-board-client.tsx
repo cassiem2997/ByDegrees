@@ -190,7 +190,7 @@ export function CreateBoardClient({
     try {
       const sessionId = getOrCreateSessionId();
       const response = await fetch(
-        `/api/spotify/artists?q=${encodeURIComponent(artistQuery)}&sessionId=${sessionId}`
+        `/api/music/artists?q=${encodeURIComponent(artistQuery)}&sessionId=${sessionId}`
       );
       const data = (await response.json()) as {
         items: MusicArtistResult[];

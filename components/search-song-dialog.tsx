@@ -52,7 +52,7 @@ export function SearchSongDialog({
 
     try {
       const sessionId = getOrCreateSessionId();
-      const res = await fetch(`/api/spotify/search?q=${encodeURIComponent(query)}&sessionId=${sessionId}`);
+      const res = await fetch(`/api/music/search?q=${encodeURIComponent(query)}&sessionId=${sessionId}`);
       const data = (await res.json()) as { items: MusicTrackResult[]; error?: string };
 
       if (!res.ok) {
