@@ -447,6 +447,49 @@ export default async function AdminPage({
         </div>
 
         <div className="space-y-3">
+          <SectionHeader eyebrow="Completion Location" title="완성 이용자 지역" />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
+              <p className="text-sm font-semibold text-ink">국가별 이용자 수</p>
+              <p className="mt-1 text-xs text-ink/45">플레이리스트 생성 완료 세션 기준</p>
+              <div className="mt-4 space-y-3">
+                {summary.completedCountries.length === 0 ? (
+                  <EmptyText>아직 완성 이용자 지역 데이터가 없습니다.</EmptyText>
+                ) : (
+                  summary.completedCountries.map((country, index) => (
+                    <div className="flex items-center justify-between rounded-2xl bg-ink/5 px-4 py-3" key={country.name}>
+                      <span className="text-sm text-ink">
+                        {index + 1}. {country.name}
+                      </span>
+                      <span className="text-sm font-semibold text-ink">{country.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
+              <p className="text-sm font-semibold text-ink">대륙별 이용자 수</p>
+              <p className="mt-1 text-xs text-ink/45">플레이리스트 생성 완료 세션 기준</p>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {summary.completedContinents.length === 0 ? (
+                  <EmptyText>아직 완성 이용자 지역 데이터가 없습니다.</EmptyText>
+                ) : (
+                  summary.completedContinents.map((continent, index) => (
+                    <div className="rounded-2xl bg-ink/5 px-4 py-3" key={continent.name}>
+                      <p className="text-sm text-ink">
+                        {index + 1}. {continent.name}
+                      </p>
+                      <p className="mt-1 text-xs text-ink/55">{continent.count} completed users</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-3">
           <SectionHeader eyebrow="Creation" title="생성 추이와 지역" />
           <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
             <AdminChart label={period.chartLabel} metric="creates" series={summary.dailySeries} />

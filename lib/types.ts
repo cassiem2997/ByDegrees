@@ -98,6 +98,8 @@ export type AdminSummary = {
   };
   visitorCountries: Array<{ name: string; count: number }>;
   visitorContinents: Array<{ name: string; count: number }>;
+  completedCountries: Array<{ name: string; count: number }>;
+  completedContinents: Array<{ name: string; count: number }>;
   topArtists: Array<{ name: string; count: number }>;
   topSongs: Array<{ title: string; count: number }>;
   exploredArtists: Array<{ name: string; count: number }>;

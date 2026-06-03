@@ -53,6 +53,18 @@ export async function POST(request: NextRequest) {
       await logEvent("create_board", parsed.data.sessionId, {
         artist: parsed.data.artistName,
         board_id: board.id,
+        country:
+          request.headers.get("x-vercel-ip-country") ??
+          request.headers.get("x-country") ??
+          undefined,
+        continent:
+          request.headers.get("x-vercel-ip-continent") ??
+          request.headers.get("x-continent") ??
+          undefined,
+        region:
+          request.headers.get("x-vercel-ip-country-region") ??
+          request.headers.get("x-region") ??
+          undefined,
         title: parsed.data.title
       });
     }

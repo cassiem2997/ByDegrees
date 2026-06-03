@@ -73,6 +73,8 @@ export async function getAdminSummary(
     },
     visitorCountries: [],
     visitorContinents: [],
+    completedCountries: [],
+    completedContinents: [],
     topArtists: [],
     topSongs: [],
     exploredArtists: [],
@@ -206,6 +208,81 @@ export async function getAdminSummary(
           and ($1::timestamptz is null or created_at >= $1::timestamptz)
           and ($2::timestamptz is null or created_at < $2::timestamptz)
         group by metadata->>'continent'
+        order by count(distinct session_id) desc
+      `,
+      [rangeStart, rangeEnd]
+    )) as { name: string; count: number }[];
+
+    const completedCountries = (await sql(
+      `
+        with completed_events as (
+          select id, session_id, created_at, metadata
+          from events
+          where event_type = 'create_board'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+        ),
+        completed_locations as (
+          select
+            ce.session_id,
+            coalesce(
+              nullif(ce.metadata->>'country', ''),
+              nullif(pv.metadata->>'country', '')
+            ) as country
+          from completed_events ce
+          left join lateral (
+            select metadata
+            from events
+            where event_type = 'page_view'
+              and session_id = ce.session_id
+              and metadata ? 'country'
+              and coalesce(metadata->>'country', '') <> ''
+            order by abs(extract(epoch from (created_at - ce.created_at))) asc
+            limit 1
+          ) pv on true
+        )
+        select country as name, count(distinct session_id)::int as count
+        from completed_locations
+        where coalesce(country, '') <> ''
+        group by country
+        order by count(distinct session_id) desc
+        limit 15
+      `,
+      [rangeStart, rangeEnd]
+    )) as { name: string; count: number }[];
+
+    const completedContinents = (await sql(
+      `
+        with completed_events as (
+          select id, session_id, created_at, metadata
+          from events
+          where event_type = 'create_board'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+        ),
+        completed_locations as (
+          select
+            ce.session_id,
+            coalesce(
+              nullif(ce.metadata->>'continent', ''),
+              nullif(pv.metadata->>'continent', '')
+            ) as continent
+          from completed_events ce
+          left join lateral (
+            select metadata
+            from events
+            where event_type = 'page_view'
+              and session_id = ce.session_id
+              and metadata ? 'continent'
+              and coalesce(metadata->>'continent', '') <> ''
+            order by abs(extract(epoch from (created_at - ce.created_at))) asc
+            limit 1
+          ) pv on true
+        )
+        select continent as name, count(distinct session_id)::int as count
+        from completed_locations
+        where coalesce(continent, '') <> ''
+        group by continent
         order by count(distinct session_id) desc
       `,
       [rangeStart, rangeEnd]
@@ -419,6 +496,11 @@ export async function getAdminSummary(
       },
       visitorCountries,
       visitorContinents: visitorContinents.map((item) => ({
+        name: continentName(item.name),
+        count: item.count
+      })),
+      completedCountries,
+      completedContinents: completedContinents.map((item) => ({
         name: continentName(item.name),
         count: item.count
       })),
