@@ -66,10 +66,10 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
           showMaintenanceNotice ? "opacity-35 blur-[1px]" : ""
         ].join(" ")}
       >
-        <section className="flex flex-1 flex-col items-center justify-center pb-28 pt-12 text-center">
+        <section className="flex flex-1 flex-col items-center justify-center pb-16 pt-24 text-center">
           <Image
             alt={t.landing.heroAlt}
-            className="mb-10 h-auto w-full max-w-[270px] sm:max-w-[320px]"
+            className="mb-6 h-auto w-full max-w-[270px] sm:mb-7 sm:max-w-[320px]"
             height={3096}
             priority
             src="/images/landing-mockup.png"
