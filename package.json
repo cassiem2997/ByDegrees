@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "migrate": "node ./scripts/apply-migrations.mjs",
     "migrate:status": "node ./scripts/apply-migrations.mjs --status",
-    "seed:spotify-cache": "node ./scripts/seed-spotify-cache.mjs"
+    "seed:spotify-cache": "node ./scripts/seed-spotify-cache.mjs",
+    "seed:itunes-cache": "node ./scripts/seed-itunes-cache.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

@@ -66,6 +66,27 @@ function setCachedSearch<T>(key: string, value: T) {
   });
 }
 
+async function getStaleCachedMusicSearch<T extends "artist" | "track">(
+  kind: T,
+  cacheKey: string
+) {
+  const stale = getCachedSearch<T extends "artist" ? MusicArtistResult[] : MusicTrackResult[]>(
+    cacheKey,
+    true
+  );
+  if (stale) return stale;
+
+  const dbStale = await getCachedMusicSearch(kind, cacheKey, {
+    allowStale: true
+  });
+  if (dbStale) {
+    setCachedSearch(cacheKey, dbStale);
+    return dbStale;
+  }
+
+  return null;
+}
+
 function getArtworkUrl(artworkUrl100?: string) {
   return artworkUrl100?.replace(/100x100bb\.(jpg|png)$/i, "600x600bb.$1") ?? "";
 }
@@ -78,6 +99,10 @@ async function fetchITunesSearch<T>(params: URLSearchParams): Promise<T[]> {
 
   if (!response.ok) {
     const errorText = await response.text();
+    if (response.status === 404 && errorText.includes("newNullResponse")) {
+      return [];
+    }
+
     throw new Error(`iTunes search failed (${response.status}): ${errorText}`);
   }
 
@@ -106,22 +131,29 @@ export class ITunesMusicProvider implements MusicProvider {
       lang: "ko_kr"
     });
 
-    const results = await fetchITunesSearch<ITunesArtistResult>(params);
-    const artists = results
-      .filter((artist) => artist.artistId && artist.artistName)
-      .map((artist) => ({
-        provider: "spotify" as const,
-        providerArtistId: `itunes:${artist.artistId}`,
-        name: artist.artistName ?? "",
-        imageUrl: "",
-        externalUrl: artist.artistLinkUrl ?? "",
-        followerCount: 0,
-        genres: artist.primaryGenreName ? [artist.primaryGenreName] : []
-      }));
+    try {
+      const results = await fetchITunesSearch<ITunesArtistResult>(params);
+      const artists = results
+        .filter((artist) => artist.artistId && artist.artistName)
+        .map((artist) => ({
+          provider: "spotify" as const,
+          providerArtistId: `itunes:${artist.artistId}`,
+          name: artist.artistName ?? "",
+          imageUrl: "",
+          externalUrl: artist.artistLinkUrl ?? "",
+          followerCount: 0,
+          genres: artist.primaryGenreName ? [artist.primaryGenreName] : []
+        }));
 
-    setCachedSearch(cacheKey, artists);
-    await setCachedMusicSearch("artist", cacheKey, artists);
-    return artists;
+      setCachedSearch(cacheKey, artists);
+      await setCachedMusicSearch("artist", cacheKey, artists);
+      return artists;
+    } catch (error) {
+      const stale = await getStaleCachedMusicSearch("artist", cacheKey);
+      if (stale) return stale;
+
+      throw error;
+    }
   }
 
   async searchTracks(query: string): Promise<MusicTrackResult[]> {
@@ -144,22 +176,29 @@ export class ITunesMusicProvider implements MusicProvider {
       lang: "ko_kr"
     });
 
-    const results = await fetchITunesSearch<ITunesTrackResult>(params);
-    const tracks = results
-      .filter((track) => track.trackId && track.trackName && track.artistName)
-      .map((track) => ({
-        provider: "spotify" as const,
-        providerTrackId: `itunes:${track.trackId}`,
-        title: track.trackName ?? "",
-        artistName: track.artistName ?? "",
-        albumName: track.collectionName ?? "",
-        albumArtUrl: getArtworkUrl(track.artworkUrl100),
-        externalUrl: track.trackViewUrl ?? "",
-        previewUrl: track.previewUrl ?? null
-      }));
+    try {
+      const results = await fetchITunesSearch<ITunesTrackResult>(params);
+      const tracks = results
+        .filter((track) => track.trackId && track.trackName && track.artistName)
+        .map((track) => ({
+          provider: "spotify" as const,
+          providerTrackId: `itunes:${track.trackId}`,
+          title: track.trackName ?? "",
+          artistName: track.artistName ?? "",
+          albumName: track.collectionName ?? "",
+          albumArtUrl: getArtworkUrl(track.artworkUrl100),
+          externalUrl: track.trackViewUrl ?? "",
+          previewUrl: track.previewUrl ?? null
+        }));
 
-    setCachedSearch(cacheKey, tracks);
-    await setCachedMusicSearch("track", cacheKey, tracks);
-    return tracks;
+      setCachedSearch(cacheKey, tracks);
+      await setCachedMusicSearch("track", cacheKey, tracks);
+      return tracks;
+    } catch (error) {
+      const stale = await getStaleCachedMusicSearch("track", cacheKey);
+      if (stale) return stale;
+
+      throw error;
+    }
   }
 }
