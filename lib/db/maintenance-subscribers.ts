@@ -90,3 +90,17 @@ export async function markMaintenanceSubscribersNotified(ids: string[]) {
     [ids]
   );
 }
+
+export async function deleteExpiredMaintenanceSubscribers() {
+  const sql = getSql();
+  const rows = (await sql(
+    [
+      "delete from maintenance_subscribers",
+      "where notified_at is not null",
+      "and notified_at < now() - interval '3 days'",
+      "returning id"
+    ].join(" ")
+  )) as Array<{ id: string }>;
+
+  return rows.length;
+}

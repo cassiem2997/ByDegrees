@@ -12,7 +12,8 @@ const envSchema = z.object({
   DISCORD_ALERT_WEBHOOK_URL: z.string().url().optional(),
   ALERT_COOLDOWN_SECONDS: z.coerce.number().int().positive().optional(),
   MAINTENANCE_EMAIL_FROM: z.string().optional(),
-  MAINTENANCE_NOTIFY_BATCH_SIZE: z.coerce.number().int().positive().max(500).optional()
+  MAINTENANCE_NOTIFY_BATCH_SIZE: z.coerce.number().int().positive().max(500).optional(),
+  CRON_SECRET: z.string().optional()
 });
 
 const parsed = envSchema.safeParse(process.env);

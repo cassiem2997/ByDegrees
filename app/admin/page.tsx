@@ -180,7 +180,7 @@ function PeriodNavigation({ period }: { period: ReturnType<typeof normalizeAdmin
                 ? "bg-ink text-white"
                 : "bg-ink/5 text-ink/55 hover:bg-ink/10 hover:text-ink"
             )}
-            href={adminPeriodHref(unit.value, period.dateKey)}
+            href={adminPeriodHref(unit.value, normalizeAdminPeriod(unit.value).dateKey)}
             key={unit.value}
           >
             {unit.label}
@@ -241,7 +241,7 @@ export default async function AdminPage({
   const canSendMaintenanceNotifications = canSendMaintenanceEmail();
 
   return (
-    <SiteShell>
+    <SiteShell logoHref="https://by-degrees.vercel.app" logoNewTab>
       <div className="space-y-6">
         <div className="overflow-hidden rounded-[34px] border border-white/75 bg-white/78 shadow-[0_24px_70px_rgba(27,30,70,0.08)] backdrop-blur">
           <div className="bg-gradient-to-r from-coral/16 via-gold/14 to-sky/18 px-6 py-7">

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Mail } from "lucide-react";
 
 import { MaintenanceNotificationForm } from "@/components/maintenance-notification-form";
 import { PageViewTracker } from "@/components/page-view-tracker";
@@ -15,6 +16,13 @@ export default async function HomePage() {
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fcf8f7] text-[#1c1b1b]">
       <PageViewTracker metadata={{ page: "landing" }} />
+      <a
+        className="fixed right-4 top-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-[#e1dbd8] bg-[#fcf8f7]/86 px-3.5 py-2 text-[13px] font-bold tracking-[-0.04em] text-[#5f5e5e] shadow-[0_10px_28px_rgba(28,27,27,0.08)] backdrop-blur transition hover:border-[#1c1b1b]/18 hover:text-[#1c1b1b] focus:outline-none focus:ring-2 focus:ring-[#1c1b1b]/15"
+        href="mailto:adminbydegrees@gmail.com?subject=%EA%B8%B0%EC%98%A8%EB%B3%84%ED%94%8C%EB%A6%AC%20%EB%AC%B8%EC%9D%98"
+      >
+        <Mail aria-hidden="true" className="h-3.5 w-3.5" />
+        문의하기
+      </a>
       <div
         className={[
           "mx-auto flex min-h-screen w-full max-w-[450px] flex-col px-10",
