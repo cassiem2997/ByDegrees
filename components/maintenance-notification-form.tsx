@@ -112,7 +112,7 @@ export function MaintenanceNotificationForm() {
             ) : null}
 
             <p className="mt-4 text-[11px] leading-[1.5] text-[#8b8581]">
-              입력한 이메일은 점검 완료 1회 안내 목적으로만 수집하며, 발송 후 발송 여부 기록과 함께 보관합니다. 삭제를 원하시면 운영자에게 요청해주세요.
+              입력한 이메일은 점검 완료 1회 안내 목적으로만 수집합니다. 메일 발송 후 발송 여부 기록과 함께 3일간 보관되며, 이후에는 즉시 삭제됩니다.
             </p>
           </section>
         </div>
