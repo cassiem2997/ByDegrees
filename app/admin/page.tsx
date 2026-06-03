@@ -21,7 +21,6 @@ import {
 } from "@/lib/admin-period";
 import { getMaintenanceNoticeState } from "@/lib/db/maintenance-notice";
 import { getMaintenanceSubscriberStats } from "@/lib/db/maintenance-subscribers";
-import { canSendMaintenanceEmail } from "@/lib/email";
 import { cn, formatShortNumber } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -359,8 +358,6 @@ export default async function AdminPage({
     getMaintenanceSubscriberStats(),
     getMaintenanceNoticeState()
   ]);
-  const canSendMaintenanceNotifications = canSendMaintenanceEmail();
-
   return (
     <SiteShell logoHref="https://by-degrees.vercel.app" logoNewTab>
       <div className="space-y-6">
@@ -401,13 +398,8 @@ export default async function AdminPage({
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral">Maintenance</p>
             <h2 className="mt-1 text-xl font-semibold text-ink">점검 완료 알림</h2>
             <p className="mt-2 text-sm leading-6 text-ink/56">
-              미발송 신청자에게 점검 완료 메일을 수동으로 발송합니다. 성공한 대상은 notified_at이 기록됩니다.
+              미발송 신청자 이메일을 복사하고 Gmail 작성창을 엽니다. 발송 후 notified_at은 수동으로 기록해주세요.
             </p>
-            {!canSendMaintenanceNotifications ? (
-              <p className="mt-2 text-xs font-semibold text-coral">
-                RESEND_API_KEY와 MAINTENANCE_EMAIL_FROM 설정이 필요합니다.
-              </p>
-            ) : null}
           </div>
           <div className="mt-4 grid gap-3 md:mt-0 md:min-w-[360px] md:grid-cols-[1fr_auto] md:items-center">
             <div className="grid grid-cols-3 gap-2">
@@ -424,10 +416,7 @@ export default async function AdminPage({
                 <p className="mt-1 text-lg font-semibold text-ink">{maintenanceStats.notified}</p>
               </div>
             </div>
-            <AdminMaintenanceNotifyButton
-              disabled={!canSendMaintenanceNotifications}
-              pendingCount={maintenanceStats.pending}
-            />
+            <AdminMaintenanceNotifyButton pendingCount={maintenanceStats.pending} />
           </div>
         </div>
 

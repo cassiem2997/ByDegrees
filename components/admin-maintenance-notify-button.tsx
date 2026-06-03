@@ -1,19 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { LoaderCircle, Send } from "lucide-react";
+import { Copy, LoaderCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 export function AdminMaintenanceNotifyButton({
-  disabled,
   pendingCount
 }: {
-  disabled: boolean;
   pendingCount: number;
 }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -22,7 +18,7 @@ export function AdminMaintenanceNotifyButton({
     if (pendingCount === 0) return;
 
     const confirmed = window.confirm(
-      `점검 완료 메일을 ${pendingCount}명에게 발송할까요? 발송 성공 대상은 notified_at이 기록됩니다.`
+      `미발송 이메일 ${pendingCount}개를 복사하고 Gmail 작성창을 열까요? 받는 사람은 BCC로 들어갑니다.`
     );
     if (!confirmed) return;
 
@@ -35,20 +31,32 @@ export function AdminMaintenanceNotifyButton({
         method: "POST"
       });
       const data = (await response.json()) as {
-        sent?: number;
-        failed?: number;
+        count?: number;
+        emailList?: string;
+        gmailUrl?: string;
         error?: string;
       };
 
       if (!response.ok) {
-        setError(data.error ?? "메일 발송에 실패했어요.");
+        setError(data.error ?? "이메일 목록을 불러오지 못했어요.");
         return;
       }
 
-      setMessage(`${data.sent ?? 0}명에게 발송 완료, 실패 ${data.failed ?? 0}건`);
-      router.refresh();
+      if (!data.count || !data.emailList || !data.gmailUrl) {
+        setMessage("미발송 이메일이 없어요.");
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(data.emailList);
+      } catch {
+        // Gmail prefill still works when clipboard access is blocked.
+      }
+
+      window.open(data.gmailUrl, "_blank", "noopener,noreferrer");
+      setMessage(`${data.count}개 주소를 복사하고 Gmail 작성창을 열었어요. 발송 후 notified_at은 별도로 처리해주세요.`);
     } catch {
-      setError("네트워크 오류로 메일 발송에 실패했어요.");
+      setError("네트워크 오류로 이메일 목록을 불러오지 못했어요.");
     } finally {
       setLoading(false);
     }
@@ -58,12 +66,12 @@ export function AdminMaintenanceNotifyButton({
     <div className="space-y-2">
       <Button
         className="h-11 rounded-full bg-ink px-5 text-sm font-bold text-white shadow-none hover:translate-y-0 hover:bg-ink"
-        disabled={disabled || loading || pendingCount === 0}
+        disabled={loading || pendingCount === 0}
         onClick={handleSend}
         type="button"
       >
-        {loading ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-        점검 완료 메일 보내기
+        {loading ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : <Copy className="mr-2 h-4 w-4" />}
+        Gmail로 열기
       </Button>
       {message ? <p className="text-xs font-semibold text-[#2f7b57]">{message}</p> : null}
       {error ? <p className="text-xs font-semibold text-[#ba1a1a]">{error}</p> : null}
