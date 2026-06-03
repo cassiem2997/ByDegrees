@@ -5,13 +5,19 @@ import { LoaderCircle, Mail, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DEFAULT_LOCALE, getCopy, Locale } from "@/lib/i18n/copy";
 
-export function MaintenanceNotificationForm() {
+export function MaintenanceNotificationForm({
+  locale = DEFAULT_LOCALE
+}: {
+  locale?: Locale;
+}) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const t = getCopy(locale);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -28,14 +34,18 @@ export function MaintenanceNotificationForm() {
       const data = (await response.json()) as { message?: string; error?: string };
 
       if (!response.ok) {
-        setError(data.error ?? "알림 신청에 실패했어요.");
+        setError(
+          locale === "ko"
+            ? data.error ?? t.maintenanceNotification.requestFailed
+            : t.maintenanceNotification.requestFailed
+        );
         return;
       }
 
-      setMessage(data.message ?? "점검 완료 시 메일로 안내드려요.");
+      setMessage(t.maintenanceNotification.success);
       setEmail("");
     } catch {
-      setError("네트워크 오류로 알림 신청에 실패했어요.");
+      setError(t.maintenanceNotification.networkFailed);
     } finally {
       setLoading(false);
     }
@@ -49,7 +59,7 @@ export function MaintenanceNotificationForm() {
         type="button"
       >
         <Mail className="mr-2 h-4 w-4" />
-        점검 완료 알림 받기
+        {t.maintenanceNotification.button}
       </Button>
 
       {open ? (
@@ -64,14 +74,14 @@ export function MaintenanceNotificationForm() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-[20px] font-extrabold tracking-[-0.05em] text-[#1c1b1b]">
-                  점검 완료 알림
+                  {t.maintenanceNotification.title}
                 </h2>
                 <p className="mt-2 text-[13px] font-semibold leading-[1.45] tracking-[-0.03em] text-[#5f5e5e]">
-                  점검 완료 시 메일로 안내드려요.
+                  {t.maintenanceNotification.description}
                 </p>
               </div>
               <button
-                aria-label="닫기"
+                aria-label={t.common.close}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#77716e]"
                 onClick={() => setOpen(false)}
                 type="button"
@@ -86,7 +96,7 @@ export function MaintenanceNotificationForm() {
                 className="h-12 rounded-2xl border-[#ded7d4] bg-white/72 px-4 text-[14px]"
                 inputMode="email"
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="email@example.com"
+                placeholder={t.maintenanceNotification.emailPlaceholder}
                 type="email"
                 value={email}
               />
@@ -96,7 +106,7 @@ export function MaintenanceNotificationForm() {
                 type="submit"
               >
                 {loading ? <LoaderCircle className="mr-2 h-4 w-4 animate-spin" /> : null}
-                알림 신청하기
+                {t.maintenanceNotification.submit}
               </Button>
             </form>
 
@@ -112,7 +122,7 @@ export function MaintenanceNotificationForm() {
             ) : null}
 
             <p className="mt-4 text-[11px] leading-[1.5] text-[#8b8581]">
-              입력한 이메일은 점검 완료 1회 안내 목적으로만 수집합니다. 메일 발송 후 발송 여부 기록과 함께 3일간 보관되며, 이후에는 즉시 삭제됩니다.
+              {t.maintenanceNotification.privacy}
             </p>
           </section>
         </div>

@@ -102,7 +102,5 @@ export type AdminSummary = {
   completedContinents: Array<{ name: string; count: number }>;
   topArtists: Array<{ name: string; count: number }>;
   topSongs: Array<{ title: string; count: number }>;
-  exploredArtists: Array<{ name: string; count: number }>;
-  exploredSongs: Array<{ title: string; count: number }>;
   dailySeries: Array<{ date: string; pageViews: number; creates: number; saves: number; shares: number }>;
 };

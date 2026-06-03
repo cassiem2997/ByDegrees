@@ -522,7 +522,7 @@ export default async function AdminPage({
                   <Trophy size={20} />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-ink">완성 기준 인기 아티스트 TOP 5</p>
+                  <p className="text-sm font-semibold text-ink">완성 기준 인기 아티스트 TOP 10</p>
                   <p className="mt-1 text-xs text-ink/45">실제로 생성 완료된 플레이리스트 기준</p>
                 </div>
               </div>
@@ -570,48 +570,6 @@ export default async function AdminPage({
           </div>
         </div>
 
-        <div className="space-y-3">
-          <SectionHeader eyebrow="Exploration" title="궁금해서 눌러본 취향" />
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <p className="text-sm font-semibold text-ink">탐색 기준 인기 아티스트 TOP 5</p>
-              <p className="mt-1 text-xs text-ink/45">제작 중 선택해본 아티스트 기준</p>
-              <div className="mt-4 space-y-3">
-                {summary.exploredArtists.length === 0 ? (
-                  <EmptyText>아직 아티스트 선택 데이터가 없습니다.</EmptyText>
-                ) : (
-                  summary.exploredArtists.map((artist, index) => (
-                    <div className="flex items-center justify-between rounded-2xl bg-ink/5 px-4 py-3" key={artist.name}>
-                      <span className="text-sm text-ink">
-                        {index + 1}. {artist.name}
-                      </span>
-                      <span className="text-sm font-semibold text-ink">{artist.count}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <p className="text-sm font-semibold text-ink">탐색 기준 인기 곡 TOP 10</p>
-              <p className="mt-1 text-xs text-ink/45">제작 중 카드에 올려본 곡 기준</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {summary.exploredSongs.length === 0 ? (
-                  <EmptyText>아직 곡 선택 데이터가 없습니다.</EmptyText>
-                ) : (
-                  summary.exploredSongs.map((song, index) => (
-                    <div className="rounded-2xl bg-ink/5 px-4 py-3" key={song.title}>
-                      <p className="text-sm text-ink">
-                        {index + 1}. {song.title}
-                      </p>
-                      <p className="mt-1 text-xs text-ink/55">{song.count} selections</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </SiteShell>
   );
