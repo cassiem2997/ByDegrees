@@ -47,6 +47,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
   const contactHref = `mailto:adminbydegrees@gmail.com?subject=${encodeURIComponent(
     t.landing.contactSubject
   )}`;
+  const createHref = locale === "en" ? "/en/create" : "/create";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fcf8f7] text-[#1c1b1b]">
@@ -77,7 +78,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
 
           <Link
             className="flex h-16 w-full items-center justify-center gap-3 rounded-full bg-[#1a1a1a] px-6 text-[21px] font-extrabold tracking-[-0.05em] text-white shadow-[0_24px_42px_rgba(0,0,0,0.16)] transition active:scale-95"
-            href="/create"
+            href={createHref}
           >
             <Image
               alt=""

@@ -6,6 +6,7 @@ import { LoaderCircle, Search, X } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_LOCALE, getCopy, Locale } from "@/lib/i18n/copy";
 import { MusicTrackResult } from "@/lib/types";
 import { getOrCreateSessionId } from "@/lib/session";
 
@@ -13,6 +14,7 @@ export function SearchSongDialog({
   open,
   artistName,
   duplicateSong,
+  locale = DEFAULT_LOCALE,
   onClose,
   onConfirmDuplicate,
   onDuplicateCancel,
@@ -22,12 +24,14 @@ export function SearchSongDialog({
   open: boolean;
   artistName?: string;
   duplicateSong?: MusicTrackResult | null;
+  locale?: Locale;
   onClose: () => void;
   onConfirmDuplicate?: () => void;
   onDuplicateCancel?: () => void;
   onRateLimit?: () => void;
   onSelect: (song: MusicTrackResult) => void;
 }) {
+  const t = getCopy(locale);
   const [query, setQuery] = useState(artistName ?? "");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<MusicTrackResult[]>([]);
@@ -56,14 +60,14 @@ export function SearchSongDialog({
         if (res.status === 429) {
           onRateLimit?.();
         }
-        setErrorMessage(data.error ?? "곡 검색 중 오류가 발생했습니다.");
+        setErrorMessage(locale === "ko" ? data.error ?? t.searchDialog.searchError : t.searchDialog.searchError);
         return;
       }
 
       setResults(data.items ?? []);
     } catch {
       setResults([]);
-      setErrorMessage("네트워크 오류로 곡 검색에 실패했습니다.");
+      setErrorMessage(t.searchDialog.networkError);
     } finally {
       setLoading(false);
     }
@@ -84,14 +88,14 @@ export function SearchSongDialog({
         <header className="flex items-start justify-between px-10 pb-6">
           <div>
             <h2 className="text-[24px] font-extrabold tracking-[-0.06em] text-[#1c1b1b]">
-              곡 선택하기
+              {t.searchDialog.title}
             </h2>
             <p className="mt-2 text-[13px] font-semibold tracking-[0.12em] text-[#aaa5a2]">
               ADD TRACK TO PLAYLIST
             </p>
           </div>
           <button
-            aria-label="닫기"
+            aria-label={t.common.close}
             className="flex h-9 w-9 items-center justify-center rounded-full text-[#77716e]"
             onClick={onClose}
             type="button"
@@ -109,11 +113,11 @@ export function SearchSongDialog({
               onKeyDown={(event) => {
                 if (event.key === "Enter") void handleSearch();
               }}
-              placeholder="곡명 또는 아티스트명으로 검색"
+              placeholder={t.searchDialog.placeholder}
               value={query}
             />
             <Button className="ml-3 h-9 shrink-0 px-4 py-0 text-xs" onClick={handleSearch} type="button">
-              검색
+              {t.common.search}
             </Button>
           </div>
         </div>
@@ -122,7 +126,7 @@ export function SearchSongDialog({
           {loading ? (
             <div className="flex items-center justify-center rounded-xl border border-[#ece7e4] bg-white/45 px-4 py-10 text-[#77716e]">
               <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-              곡을 불러오는 중
+              {t.searchDialog.loading}
             </div>
           ) : null}
 
@@ -163,7 +167,7 @@ export function SearchSongDialog({
         </div>
 
         <footer className="absolute bottom-0 w-full bg-[#fcf8f7] px-10 py-5 text-center">
-          <p className="text-[12px] italic text-[#aaa5a2]">iTunes 검색 결과를 불러옵니다.</p>
+          <p className="text-[12px] italic text-[#aaa5a2]">{t.searchDialog.providerFooter}</p>
         </footer>
       </section>
       {duplicateSong ? (
@@ -173,10 +177,10 @@ export function SearchSongDialog({
         >
           <div className="w-full max-w-[330px] rounded-[24px] bg-[#f1edec]/95 px-6 py-6 text-center text-[#1c1b1b] shadow-[0_18px_38px_rgba(0,0,0,0.18)] backdrop-blur-sm">
             <p className="text-[18px] font-extrabold leading-tight tracking-[-0.05em]">
-              이미 추가한 곡입니다.
+              {t.searchDialog.duplicateTitle}
             </p>
             <p className="mt-2 text-[14px] font-semibold leading-[1.45] text-[#6f6a67]">
-              그래도 추가하시겠어요?
+              {t.searchDialog.duplicateDescription}
             </p>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <Button
@@ -184,14 +188,14 @@ export function SearchSongDialog({
                 onClick={onDuplicateCancel}
                 type="button"
               >
-                취소
+                {t.common.cancel}
               </Button>
               <Button
                 className="h-11 bg-[#1a1a1a] text-[13px] font-bold text-white shadow-none hover:translate-y-0 hover:bg-[#1a1a1a]"
                 onClick={onConfirmDuplicate}
                 type="button"
               >
-                추가하기
+                {t.common.add}
               </Button>
             </div>
           </div>

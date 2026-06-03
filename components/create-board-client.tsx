@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, CheckCircle, LoaderCircle, Search, Sparkles, Use
 import { BoardPreview } from "@/components/board-preview";
 import { SearchSongDialog } from "@/components/search-song-dialog";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_LOCALE, getCopy, Locale } from "@/lib/i18n/copy";
 import { getOrCreateSessionId } from "@/lib/session";
 import { BoardRow, BoardSummary, MusicArtistResult, MusicTrackResult, TemperaturePreset } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -51,11 +52,15 @@ function StepTitle({
 }
 
 export function CreateBoardClient({
+  locale = DEFAULT_LOCALE,
   presets
 }: {
+  locale?: Locale;
   presets: TemperaturePreset[];
 }) {
   const router = useRouter();
+  const t = getCopy(locale);
+  const landingHref = locale === "en" ? "/en" : "/";
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState<CreateStep>("nickname");
   const [nickname, setNickname] = useState("");
@@ -73,16 +78,18 @@ export function CreateBoardClient({
   const [rows, setRows] = useState<BoardRow[]>(
     presets.map((preset) => ({ preset, songs: [null, null, null] }))
   );
-  const displayArtistName = artistMode === "single" ? artistName : "다양한 아티스트";
+  const displayArtistName = artistMode === "single" ? artistName : t.create.multiArtistName;
   const title =
     artistMode === "single"
       ? artistName.trim().length > 0
-        ? `기온별 ${artistName.trim()} by ${nickname.trim()} 🎶`
+        ? t.create.singleBoardTitle
+            .replace("{artistName}", artistName.trim())
+            .replace("{nickname}", nickname.trim())
         : nickname.trim().length > 0
-          ? `기온별 플레이리스트 by ${nickname.trim()} 🎶`
+          ? t.create.boardTitleFallback.replace("{nickname}", nickname.trim())
           : ""
       : nickname.trim().length > 0
-        ? `기온별 플리 by ${nickname.trim()} 🎶`
+        ? t.create.multiBoardTitle.replace("{nickname}", nickname.trim())
       : "";
   const emptyRowCount = rows.filter((row) => row.songs.every((song) => !song)).length;
 
@@ -194,14 +201,14 @@ export function CreateBoardClient({
         if (response.status === 429) {
           setShowSpotifyRateLimitNotice(true);
         }
-        setArtistSearchError(data.error ?? "아티스트 검색 중 오류가 발생했습니다.");
+        setArtistSearchError(locale === "ko" ? data.error ?? t.create.artistSearchError : t.create.artistSearchError);
         return;
       }
 
       setArtistResults(data.items ?? []);
     } catch {
       setArtistResults([]);
-      setArtistSearchError("네트워크 오류로 아티스트 검색에 실패했습니다.");
+      setArtistSearchError(t.create.artistNetworkError);
     } finally {
       setArtistSearchLoading(false);
     }
@@ -280,7 +287,7 @@ export function CreateBoardClient({
         };
 
         if (!response.ok || !data.id || !data.slug) {
-          setSaveError(data.error ?? "플레이리스트 미리보기를 준비하지 못했어요. 다시 시도해주세요.");
+          setSaveError(locale === "ko" ? data.error ?? t.create.previewFailed : t.create.previewFailed);
           return;
         }
 
@@ -296,7 +303,7 @@ export function CreateBoardClient({
         window.sessionStorage.setItem(RESTORE_CREATE_STORAGE_KEY, "1");
         router.push("/preview");
       } catch {
-        setSaveError("이미지 미리보기를 준비하지 못했어요. 다시 시도해주세요.");
+        setSaveError(t.create.imagePreviewFailed);
         return;
       }
     });
@@ -314,9 +321,9 @@ export function CreateBoardClient({
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_65%,rgba(255,195,113,0.18),transparent_36%),radial-gradient(circle_at_86%_42%,rgba(204,171,216,0.22),transparent_42%)]" />
         <header className="relative z-10 flex h-[92px] items-center justify-between">
           <button
-            aria-label="랜딩 페이지로 돌아가기"
+            aria-label={t.create.backToLanding}
             className={STEP_BACK_BUTTON_CLASS}
-            onClick={() => router.push("/")}
+            onClick={() => router.push(landingHref)}
             type="button"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -326,9 +333,7 @@ export function CreateBoardClient({
 
         <main className="relative z-10 flex flex-1 flex-col pt-20 pb-8">
           <StepTitle>
-            이름 또는 닉네임을
-            <br />
-            적어주세요
+            {renderTitleLines(t.create.nicknameTitle)}
           </StepTitle>
 
           <label className="mt-10 block">
@@ -351,7 +356,7 @@ export function CreateBoardClient({
             disabled={trimmedNickname.length === 0}
             onClick={() => setStep("mode")}
           >
-            다음 단계로
+            {t.create.next}
             <ArrowRight className="h-8 w-8" />
           </Button>
         </footer>
@@ -365,7 +370,7 @@ export function CreateBoardClient({
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_45%,rgba(62,58,56,0.12),transparent_54%)]" />
         <header className="relative z-10 flex h-[92px] items-center justify-between">
           <button
-            aria-label="이전 단계"
+            aria-label={t.create.previous}
             className={STEP_BACK_BUTTON_CLASS}
             onClick={() => setStep("nickname")}
             type="button"
@@ -377,16 +382,14 @@ export function CreateBoardClient({
 
         <main className="relative z-10 flex flex-1 flex-col pt-20 pb-8">
           <StepTitle className="mb-12">
-            플레이리스트를
-            <br />
-            <span className="whitespace-nowrap">이렇게 구성하고 싶어요</span>
+            {renderTitleLines(t.create.modeTitle)}
           </StepTitle>
 
           <div className="space-y-4">
             <ArtistOption
               active={artistMode === "single"}
               icon={<User className="h-5 w-5" />}
-              label="모두 같은 아티스트의 곡으로"
+              label={t.create.singleArtistMode}
               labelClassName="-translate-x-[4pt]"
               onClick={() => {
                 setArtistMode("single");
@@ -397,7 +400,7 @@ export function CreateBoardClient({
             <ArtistOption
               active={artistMode === "multi"}
               icon={<Users className="h-5 w-5" />}
-              label="다양한 아티스트의 곡으로"
+              label={t.create.multiArtistMode}
               onClick={() => {
                 setArtistMode("multi");
                 setArtistName("");
@@ -412,7 +415,7 @@ export function CreateBoardClient({
             className="h-16 w-full gap-3 rounded-full bg-[#1a1a1a] text-[22px] font-extrabold tracking-[-0.05em] shadow-[0_24px_42px_rgba(0,0,0,0.16)] hover:translate-y-0 hover:bg-[#1a1a1a]"
             onClick={() => setStep(artistMode === "single" ? "artist" : "board")}
           >
-            다음 단계로
+            {t.create.next}
             <ArrowRight className="h-8 w-8" />
           </Button>
         </footer>
@@ -426,7 +429,7 @@ export function CreateBoardClient({
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_70%,rgba(255,195,113,0.15),transparent_36%),radial-gradient(circle_at_82%_38%,rgba(138,150,215,0.18),transparent_42%)]" />
         <header className="relative z-10 flex h-[92px] items-center justify-between">
           <button
-            aria-label="이전 단계"
+            aria-label={t.create.previous}
             className={STEP_BACK_BUTTON_CLASS}
             onClick={() => setStep("mode")}
             type="button"
@@ -438,9 +441,7 @@ export function CreateBoardClient({
 
         <main className="relative z-10 flex flex-1 flex-col pt-20 pb-20">
           <StepTitle>
-            아티스트를
-            <br />
-            선택해주세요
+            {renderTitleLines(t.create.artistTitle)}
           </StepTitle>
 
           <div className="mt-16 flex items-center border-b border-[#d8d3d1] pb-3">
@@ -451,7 +452,7 @@ export function CreateBoardClient({
               onKeyDown={(event) => {
                 if (event.key === "Enter") void handleArtistSearch();
               }}
-              placeholder="아티스트명 검색"
+              placeholder={t.create.artistSearchPlaceholder}
               value={artistQuery}
             />
             <Button
@@ -460,7 +461,7 @@ export function CreateBoardClient({
               onClick={handleArtistSearch}
               type="button"
             >
-              검색
+              {t.common.search}
             </Button>
           </div>
 
@@ -468,7 +469,7 @@ export function CreateBoardClient({
             {artistSearchLoading ? (
               <div className="flex items-center justify-center rounded-xl border border-[#ebe7e6] bg-white/45 py-12 text-[#77716e]">
                 <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-                아티스트를 불러오는 중
+                {t.create.artistLoading}
               </div>
             ) : null}
 
@@ -508,7 +509,7 @@ export function CreateBoardClient({
               ))}
           </div>
         </main>
-        {showSpotifyRateLimitNotice ? <SpotifyRateLimitNotice /> : null}
+        {showSpotifyRateLimitNotice ? <SpotifyRateLimitNotice locale={locale} /> : null}
       </div>
     );
   }
@@ -518,7 +519,7 @@ export function CreateBoardClient({
       <header className="mb-7 flex items-center justify-center border-b border-[#e6dfdc] pb-5">
         <button className="flex h-8 w-[116px] items-center" onClick={() => setStep("mode")} type="button">
           <Image
-            alt="기온별플리"
+            alt={t.common.appName}
             className="h-auto w-full"
             height={35}
             src="/images/gion-logo-transparent.png"
@@ -530,7 +531,7 @@ export function CreateBoardClient({
       <div className="space-y-4 pt-2">
         <BoardPreview
           artistName={displayArtistName}
-          brandText="© 2026 기온별플리 By Degrees. All rights reserved."
+          brandText={t.boardPreview.brandText}
           editable
           onAdd={(presetId, slotIndex) => setSelectionTarget({ presetId, slotIndex })}
           onRemove={(presetId, slotIndex) => updateSong(presetId, slotIndex, null)}
@@ -539,7 +540,7 @@ export function CreateBoardClient({
           showArtistInput={false}
           showSongArtistName={artistMode !== "single"}
           title={title}
-          titlePlaceholder="내 기온별 플레이리스트 제목"
+          titlePlaceholder={t.create.titlePlaceholder}
           titleReadOnly
         />
       </div>
@@ -551,9 +552,7 @@ export function CreateBoardClient({
               ⚠️
             </span>
             <p>
-              <span className="whitespace-nowrap">모든 기온 구간에 한 곡</span>
-              <br />
-              이상을 선택해주세요.
+              {renderToastLines(t.create.missingSongs)}
             </p>
           </div>
         ) : null}
@@ -562,7 +561,7 @@ export function CreateBoardClient({
           disabled={!canSave || isPending}
           onClick={handleSave}
         >
-          {isPending ? "이미지 준비 중..." : "플레이리스트 미리보기"}
+          {isPending ? t.create.preparingImage : t.create.preview}
           <Sparkles className="h-4 w-4" />
         </Button>
         {saveError ? (
@@ -575,6 +574,7 @@ export function CreateBoardClient({
       <SearchSongDialog
         artistName={artistMode === "single" ? artistName : ""}
         duplicateSong={pendingDuplicateSong}
+        locale={locale}
         onConfirmDuplicate={() => {
           if (pendingDuplicateSong) void addSongToSelection(pendingDuplicateSong);
         }}
@@ -584,12 +584,36 @@ export function CreateBoardClient({
         onSelect={handleSongSelect}
         open={selectionTarget !== null}
       />
-      {showSpotifyRateLimitNotice ? <SpotifyRateLimitNotice /> : null}
+      {showSpotifyRateLimitNotice ? <SpotifyRateLimitNotice locale={locale} /> : null}
     </div>
   );
 }
 
-function SpotifyRateLimitNotice() {
+function renderTitleLines(text: string) {
+  return text.split("\n").map((line, index) => (
+    <span className={index > 0 ? "whitespace-nowrap" : undefined} key={`${line}-${index}`}>
+      {index > 0 ? <br /> : null}
+      {line}
+    </span>
+  ));
+}
+
+function renderToastLines(text: string) {
+  return text.split("\n").map((line, index) => (
+    <span className={index === 0 ? "whitespace-nowrap" : undefined} key={`${line}-${index}`}>
+      {index > 0 ? <br /> : null}
+      {line}
+    </span>
+  ));
+}
+
+function SpotifyRateLimitNotice({
+  locale = DEFAULT_LOCALE
+}: {
+  locale?: Locale;
+}) {
+  const t = getCopy(locale);
+
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#fcf8f7]/58 px-8 backdrop-blur-[2px]">
       <section className="w-full max-w-[350px] rounded-[28px] border border-[#e1dbd8] bg-[#fcf8f7]/95 px-7 py-7 text-center shadow-[0_24px_60px_rgba(28,27,27,0.16)]">
@@ -597,14 +621,10 @@ function SpotifyRateLimitNotice() {
           🚧
         </p>
         <h1 className="mt-4 text-[24px] font-extrabold tracking-[-0.06em] text-[#1c1b1b]">
-          잠시 점검 중입니다
+          {t.create.maintenanceTitle}
         </h1>
         <p className="mt-4 text-[15px] font-semibold leading-[1.55] tracking-[-0.04em] text-[#5f5e5e]">
-          음악 검색 요청이 몰려
-          <br />
-          잠시 쉬어가고 있어요.
-          <br />
-          조금 뒤 다시 시도해주세요.
+          {renderTitleLines(t.create.maintenanceDescription)}
         </p>
       </section>
     </div>
