@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { logEvent } from "@/lib/analytics";
 import { notifySpotifyRateLimit } from "@/lib/alerts";
+import { triggerMaintenanceNoticeForSearchError } from "@/lib/maintenance";
 import { getMusicProvider } from "@/lib/providers/music";
 import { isSpotifyRateLimitError } from "@/lib/providers/music/spotify";
 
@@ -30,6 +31,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (isSpotifyRateLimitError(error)) {
       console.warn("[spotify-artist-search-rate-limit]", error);
+      await triggerMaintenanceNoticeForSearchError({
+        route: "/api/spotify/artists",
+        query,
+        error
+      });
       await notifySpotifyRateLimit({
         route: "/api/spotify/artists",
         query,
@@ -46,6 +52,11 @@ export async function GET(request: NextRequest) {
     }
 
     console.error("[spotify-artist-search]", error);
+    await triggerMaintenanceNoticeForSearchError({
+      route: "/api/spotify/artists",
+      query,
+      error
+    });
     return NextResponse.json(
       {
         items: [],

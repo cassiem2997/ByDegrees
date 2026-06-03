@@ -6,6 +6,12 @@ type SpotifyRateLimitAlert = {
   retryAfterSeconds: number | null;
 };
 
+type MusicSearchFailureAlert = {
+  route: string;
+  query: string;
+  errorMessage: string;
+};
+
 const DEFAULT_ALERT_COOLDOWN_SECONDS = 30 * 60;
 const alertCooldowns = new Map<string, number>();
 
@@ -54,6 +60,38 @@ export async function notifySpotifyRateLimit({
           `route: ${route}`,
           `query: ${query}`,
           `retryAfter: ${formatRetryAfter(retryAfterSeconds)}`
+        ].join("\n")
+      }),
+      signal: AbortSignal.timeout(2500)
+    });
+  } catch (error) {
+    console.warn("[discord-alert]", error);
+  }
+}
+
+export async function notifyMusicSearchFailure({
+  route,
+  query,
+  errorMessage
+}: MusicSearchFailureAlert) {
+  const webhookUrl = env.DISCORD_ALERT_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  const alertKey = `music-search-failure:${route}`;
+  if (!shouldSendAlert(alertKey)) return;
+
+  try {
+    await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        content: [
+          "🚨 음악 검색 오류 감지 - 랜딩 점검 공지 ON",
+          `route: ${route}`,
+          `query: ${query}`,
+          `error: ${errorMessage.slice(0, 500)}`
         ].join("\n")
       }),
       signal: AbortSignal.timeout(2500)

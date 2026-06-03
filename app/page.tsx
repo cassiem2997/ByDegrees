@@ -3,17 +3,22 @@ import Link from "next/link";
 
 import { MaintenanceNotificationForm } from "@/components/maintenance-notification-form";
 import { PageViewTracker } from "@/components/page-view-tracker";
+import { getMaintenanceNoticeState } from "@/lib/db/maintenance-notice";
 
-const SHOW_MAINTENANCE_NOTICE = false;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const maintenanceNotice = await getMaintenanceNoticeState();
+  const showMaintenanceNotice = maintenanceNotice.active;
+
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#fcf8f7] text-[#1c1b1b]">
       <PageViewTracker metadata={{ page: "landing" }} />
       <div
         className={[
           "mx-auto flex min-h-screen w-full max-w-[450px] flex-col px-10",
-          SHOW_MAINTENANCE_NOTICE ? "opacity-35 blur-[1px]" : ""
+          showMaintenanceNotice ? "opacity-35 blur-[1px]" : ""
         ].join(" ")}
       >
         <section className="flex flex-1 flex-col items-center justify-center pb-28 pt-12 text-center">
@@ -43,7 +48,7 @@ export default function HomePage() {
           </Link>
         </section>
       </div>
-      {SHOW_MAINTENANCE_NOTICE ? (
+      {showMaintenanceNotice ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#fcf8f7]/58 px-8 backdrop-blur-[2px]">
           <section className="w-full max-w-[350px] rounded-[28px] border border-[#e1dbd8] bg-[#fcf8f7]/95 px-7 py-7 text-center shadow-[0_24px_60px_rgba(28,27,27,0.16)]">
             <p className="text-[34px] leading-none" aria-hidden="true">
