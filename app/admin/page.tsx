@@ -159,6 +159,127 @@ function EmptyText({ children }: { children: string }) {
   return <p className="rounded-2xl bg-ink/5 px-4 py-5 text-sm text-ink/45">{children}</p>;
 }
 
+type DonutDatum = {
+  name: string;
+  count: number;
+};
+
+const DONUT_COLORS = ["#ff6f61", "#ffb13b", "#3cc6d8", "#7ed88f", "#7b71e8", "#f38ac2"];
+
+function compactDonutData(data: DonutDatum[], maxSlices = 5) {
+  const sorted = [...data].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  if (sorted.length <= maxSlices) return sorted;
+
+  const visible = sorted.slice(0, maxSlices);
+  const otherCount = sorted.slice(maxSlices).reduce((total, item) => total + item.count, 0);
+  return otherCount > 0 ? [...visible, { name: "기타", count: otherCount }] : visible;
+}
+
+function describeArc(cx: number, cy: number, radius: number, startAngle: number, endAngle: number) {
+  const start = polarToCartesian(cx, cy, radius, endAngle);
+  const end = polarToCartesian(cx, cy, radius, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+  return [
+    "M",
+    start.x,
+    start.y,
+    "A",
+    radius,
+    radius,
+    0,
+    largeArcFlag,
+    0,
+    end.x,
+    end.y
+  ].join(" ");
+}
+
+function polarToCartesian(cx: number, cy: number, radius: number, angleInDegrees: number) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(angleInRadians),
+    y: cy + radius * Math.sin(angleInRadians)
+  };
+}
+
+function DonutChartCard({
+  title,
+  caption,
+  data,
+  emptyText,
+  maxSlices = 5
+}: {
+  title: string;
+  caption?: string;
+  data: DonutDatum[];
+  emptyText: string;
+  maxSlices?: number;
+}) {
+  const chartData = compactDonutData(data, maxSlices);
+  const total = chartData.reduce((sum, item) => sum + item.count, 0);
+  let startAngle = 0;
+
+  return (
+    <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
+      <p className="text-sm font-semibold text-ink">{title}</p>
+      {caption ? <p className="mt-1 text-xs text-ink/45">{caption}</p> : null}
+      {total === 0 ? (
+        <div className="mt-4">
+          <EmptyText>{emptyText}</EmptyText>
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-4 sm:grid-cols-[150px_1fr] sm:items-center">
+          <div className="relative mx-auto h-[150px] w-[150px]">
+            <svg aria-hidden="true" className="h-full w-full" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" fill="none" r="54" stroke="rgba(28,27,27,0.08)" strokeWidth="24" />
+              {chartData.map((item, index) => {
+                const angle = (item.count / total) * 360;
+                const endAngle = startAngle + angle;
+                const path = describeArc(80, 80, 54, startAngle, endAngle);
+                startAngle = endAngle;
+
+                return (
+                  <path
+                    d={path}
+                    fill="none"
+                    key={item.name}
+                    stroke={DONUT_COLORS[index % DONUT_COLORS.length]}
+                    strokeLinecap="round"
+                    strokeWidth="24"
+                  />
+                );
+              })}
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink/38">Total</span>
+              <span className="mt-1 text-2xl font-semibold text-ink">{formatShortNumber(total)}</span>
+            </div>
+          </div>
+          <div className="space-y-2">
+            {chartData.map((item, index) => {
+              const percent = total > 0 ? (item.count / total) * 100 : 0;
+
+              return (
+                <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 rounded-2xl bg-ink/5 px-3 py-2" key={item.name}>
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length] }}
+                  />
+                  <span className="truncate text-sm text-ink">{item.name}</span>
+                  <span className="text-xs font-semibold text-ink/60">
+                    {formatShortNumber(item.count)} · {percent.toFixed(percent >= 10 ? 0 : 1)}%
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PeriodNavigation({ period }: { period: ReturnType<typeof normalizeAdminPeriod> }) {
   const units: Array<{ value: AdminPeriodUnit; label: string }> = [
     { value: "day", label: "일일" },
@@ -426,66 +547,31 @@ export default async function AdminPage({
           <SectionHeader eyebrow="Traffic" title="방문 흐름" />
           <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <AdminChart label={period.chartLabel} metric="pageViews" series={summary.dailySeries} />
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <p className="text-sm font-semibold text-ink">국가별 방문자 수</p>
-              <div className="mt-4 space-y-3">
-                {summary.visitorCountries.length === 0 ? (
-                  <EmptyText>아직 집계된 데이터가 없습니다.</EmptyText>
-                ) : (
-                  summary.visitorCountries.map((country, index) => (
-                    <div className="flex items-center justify-between rounded-2xl bg-ink/5 px-4 py-3" key={country.name}>
-                      <span className="text-sm text-ink">
-                        {index + 1}. {country.name}
-                      </span>
-                      <span className="text-sm font-semibold text-ink">{country.count}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+            <DonutChartCard
+              data={summary.visitorCountries}
+              emptyText="아직 집계된 데이터가 없습니다."
+              title="국가별 방문자 수"
+            />
           </div>
         </div>
 
         <div className="space-y-3">
           <SectionHeader eyebrow="Completion Location" title="완성 이용자 지역" />
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <p className="text-sm font-semibold text-ink">국가별 이용자 수</p>
-              <p className="mt-1 text-xs text-ink/45">플레이리스트 생성 완료 세션 기준</p>
-              <div className="mt-4 space-y-3">
-                {summary.completedCountries.length === 0 ? (
-                  <EmptyText>아직 완성 이용자 지역 데이터가 없습니다.</EmptyText>
-                ) : (
-                  summary.completedCountries.map((country, index) => (
-                    <div className="flex items-center justify-between rounded-2xl bg-ink/5 px-4 py-3" key={country.name}>
-                      <span className="text-sm text-ink">
-                        {index + 1}. {country.name}
-                      </span>
-                      <span className="text-sm font-semibold text-ink">{country.count}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+            <DonutChartCard
+              caption="플레이리스트 생성 완료 세션 기준"
+              data={summary.completedCountries}
+              emptyText="아직 완성 이용자 지역 데이터가 없습니다."
+              title="국가별 이용자 수"
+            />
 
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <p className="text-sm font-semibold text-ink">대륙별 이용자 수</p>
-              <p className="mt-1 text-xs text-ink/45">플레이리스트 생성 완료 세션 기준</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {summary.completedContinents.length === 0 ? (
-                  <EmptyText>아직 완성 이용자 지역 데이터가 없습니다.</EmptyText>
-                ) : (
-                  summary.completedContinents.map((continent, index) => (
-                    <div className="rounded-2xl bg-ink/5 px-4 py-3" key={continent.name}>
-                      <p className="text-sm text-ink">
-                        {index + 1}. {continent.name}
-                      </p>
-                      <p className="mt-1 text-xs text-ink/55">{continent.count} completed users</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+            <DonutChartCard
+              caption="플레이리스트 생성 완료 세션 기준"
+              data={summary.completedContinents}
+              emptyText="아직 완성 이용자 지역 데이터가 없습니다."
+              maxSlices={6}
+              title="대륙별 이용자 수"
+            />
           </div>
         </div>
 
@@ -493,23 +579,12 @@ export default async function AdminPage({
           <SectionHeader eyebrow="Creation" title="생성 추이와 지역" />
           <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
             <AdminChart label={period.chartLabel} metric="creates" series={summary.dailySeries} />
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <p className="text-sm font-semibold text-ink">대륙별 방문자 수</p>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {summary.visitorContinents.length === 0 ? (
-                  <EmptyText>아직 방문자 데이터가 없습니다.</EmptyText>
-                ) : (
-                  summary.visitorContinents.map((continent, index) => (
-                    <div className="rounded-2xl bg-ink/5 px-4 py-3" key={continent.name}>
-                      <p className="text-sm text-ink">
-                        {index + 1}. {continent.name}
-                      </p>
-                      <p className="mt-1 text-xs text-ink/55">{continent.count} visitors</p>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+            <DonutChartCard
+              data={summary.visitorContinents}
+              emptyText="아직 방문자 데이터가 없습니다."
+              maxSlices={6}
+              title="대륙별 방문자 수"
+            />
           </div>
         </div>
 
