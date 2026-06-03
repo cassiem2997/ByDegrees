@@ -11,6 +11,8 @@ const envSchema = z.object({
   NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY: z.string().optional(),
   DISCORD_ALERT_WEBHOOK_URL: z.string().url().optional(),
   ALERT_COOLDOWN_SECONDS: z.coerce.number().int().positive().optional(),
+  SEARCH_ERROR_NOTICE_THRESHOLD: z.coerce.number().int().positive().max(20).optional(),
+  SEARCH_ERROR_NOTICE_WINDOW_SECONDS: z.coerce.number().int().positive().optional(),
   MAINTENANCE_EMAIL_FROM: z.string().optional(),
   MAINTENANCE_NOTIFY_BATCH_SIZE: z.coerce.number().int().positive().max(500).optional(),
   CRON_SECRET: z.string().optional()
