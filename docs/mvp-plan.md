@@ -57,17 +57,22 @@
   - 일일 / 주간 / 월간 / 누적
 - 인기 데이터
   - 완성 기준 인기 아티스트 / 곡
-  - 검색 / 탐색 기준 인기 아티스트 / 곡
+  - 국가 / 대륙별 방문자 수
+  - 국가 / 대륙별 생성 완료 이용자 수
 
 ## 8. MVP Scope Boundary
 
 - 포함
-  - Spotify 메타데이터 검색
-  - Spotify 검색 캐시 / rate limit fallback
+  - iTunes 메타데이터 검색
+  - provider-neutral 음악 검색 route
+  - 음악 검색 캐시 / stale fallback
+  - 반복 검색 오류 기반 점검 공지
+  - 한국어 / 영어 랜딩, 생성, 미리보기
   - 결과 이미지 생성
   - 관리자 지표 확인
   - Open Graph 링크 미리보기
   - Discord 운영 알림
+  - 점검 완료 알림 이메일 신청 / Gmail BCC prefill / 3일 cleanup
 - 제외
   - 공개 보드 피드
   - 공개 보드 URL 중심 공유

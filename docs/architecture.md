@@ -17,17 +17,23 @@
 
 - `/`
   - 로고가 포함된 CTA와 서비스 목업을 보여주는 모바일 우선 랜딩
+- `/en`
+  - 영어 문구 랜딩
 - `/create`
   - 모바일 우선 플레이리스트 이미지 생성 화면
+- `/en/create`
+  - 영어 문구 생성 화면
 - `/preview`
   - 로컬 세션 기반 저장용 이미지 미리보기
+- `/en/preview`
+  - 영어 문구 저장용 이미지 미리보기
 - `/boards/[slug]`
   - 저장된 보드 조회 화면
   - 현재 기본 사용자 공유 흐름에서는 서비스 홈 URL 복사를 사용하므로, 공개 보드 링크 공유는 기본 노출하지 않음
 - `/admin/login`
   - 운영자 패스코드 진입
 - `/admin`
-  - 기간별 방문 / 생성 / 저장 / 공유 / 인기 데이터 / 국가 / 대륙 지표 확인
+  - 기간별 방문 / 생성 / 저장 / 공유 / 인기 데이터 / 국가 / 대륙 지표 / 점검 알림 운영 확인
 
 ## 3. MVP User Flow
 
@@ -79,9 +85,10 @@
 ## 6. Localization
 
 - 기본 언어: 한국어
-- 1차 목표는 한국어 버전 완성
-- `KOR | ENG` 스위치는 현재 UI에서 제외
-- 영문 번역 리소스는 후속 작업
+- `/`는 한국어, `/en`은 영어
+- 랜딩 좌상단 `KOR | ENG` 스위치로 언어별 랜딩 이동
+- 생성과 미리보기 플로우는 locale route를 유지
+- X 공유 텍스트는 언어별 문구를 쓰되 해시태그 정책은 동일하게 유지
 
 ## 7. Sharing Policy
 
@@ -117,20 +124,25 @@
 
 - 현재 웹 환경에서 "실제 외부 앱 업로드 완료"를 100% 보장해 잡는 것은 어렵습니다.
 - 따라서 MVP에서는 실제 공유 완료가 아니라, 공유 액션 실행을 기준으로 두는 쪽이 현실적입니다.
-- 인기 아티스트 / 곡은 생성 완료 기준과 검색/탐색 기준을 분리해 집계합니다.
+- 인기 아티스트 / 곡은 생성 완료 기준을 우선 집계합니다.
+- 국가 / 대륙 지표는 방문자 수와 생성 완료 이용자 수를 분리해 봅니다.
 - 관리자 로그인 쿠키가 있는 요청은 내부 테스트로 간주해 이벤트 기록을 건너뛰고, 생성 보드는 `is_internal`로 표시해 집계에서 제외합니다.
 
 ## 9. Tech Notes
 
-- 음악 메타데이터: Spotify Web API
-- Spotify 검색 안정화: server memory cache + Neon search cache
+- 음악 메타데이터: iTunes Search API 기본, Spotify provider fallback 코드 유지
+- 음악 검색 route: `/api/music/search`, `/api/music/artists`
+- 기존 `/api/spotify/search`, `/api/spotify/artists`는 alias로 유지
+- 음악 검색 안정화: server memory cache + Neon search cache + stale fallback
 - DB: Neon Postgres
 - Hosting: Vercel
 - Admin 보호: `ADMIN_PASSCODE` + cookie gate
 - 국가 / 대륙 추적: Vercel geo headers
 - Image export: client-side Canvas PNG
 - OG image: Next.js `ImageResponse`
-- 장애 알림: Spotify 429 발생 시 Discord webhook 알림
+- 장애 알림: 같은 검색 오류가 짧은 시간 안에 반복되면 점검 공지 ON + Discord webhook 알림
+- 점검 완료 알림: 이메일 신청 저장, admin Gmail BCC prefill, 발송 후 `notified_at` 수동 처리
+- 점검 알림 cleanup: Vercel Cron이 발송 완료 3일 후 신청자 삭제
 - SEO: App Router metadata + `app/icon.tsx`
 
 ## 10. Current Non-Goals

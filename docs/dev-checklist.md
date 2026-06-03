@@ -26,14 +26,19 @@
 - [x] 계절 이모지 반영
 - [x] 브랜드 로고 반영
 - [x] 랜딩 목업 이미지 반영
-- [x] KOR | ENG 스위치 제거
+- [x] 랜딩 KOR | ENG 스위치 반영
+- [x] 문의하기 mailto 버튼 반영
 
 ## 데이터 / 기능
 
-- [x] Spotify API 연결
-- [x] Spotify 검색 메모리 캐시 적용
-- [x] Spotify 검색 Neon 캐시 적용
-- [x] Spotify 429 stale cache fallback 적용
+- [x] iTunes API 기본 provider 연결
+- [x] Spotify provider fallback 코드 유지
+- [x] provider-neutral `/api/music/*` route 적용
+- [x] 기존 `/api/spotify/*` alias 유지
+- [x] iTunes 검색 메모리 캐시 적용
+- [x] iTunes 검색 Neon 캐시 적용
+- [x] 검색 실패 시 stale cache fallback 적용
+- [x] iTunes 검색 캐시 워밍 script 추가
 - [x] 곡명 / 아티스트명 / 앨범아트 조회 확인
 - [x] 이름 / 닉네임 입력 저장 연결
 - [x] 아티스트 옵션 기반 자동 제목 연결
@@ -42,6 +47,15 @@
 - [x] 중복곡 추가 확인
 - [x] 빈 기온 구간 안내 토스트
 - [x] 긴 제목 / 긴 곡명 처리
+
+## 다국어
+
+- [x] copy dictionary 구조 추가
+- [x] 한국어 랜딩 / 생성 / 미리보기 플로우 유지
+- [x] 영어 랜딩 `/en` 구현
+- [x] 영어 생성 `/en/create` 구현
+- [x] 영어 미리보기 `/en/preview` 구현
+- [x] 언어별 X 공유 텍스트와 공통 해시태그 정책 반영
 
 ## 공유
 
@@ -67,18 +81,27 @@
 - [x] 평균 선택 곡 수
 - [x] 빈 / 채워진 기온 구간 통계
 - [x] 완성 기준 인기 아티스트 / 곡
-- [x] 검색 / 탐색 기준 인기 아티스트 / 곡
+- [x] 완성 기준 인기 아티스트 TOP 10
 - [x] 기간 네비게이션
+- [x] 일일 / 주간 / 월간 탭 클릭 시 현재 기간 자동 선택
 - [x] 관리자 화면 디자인 정리
 - [x] 관리자 로그인 상태 내부 트래픽 제외
+- [x] 국가 / 대륙별 방문자 donut chart
+- [x] 국가 / 대륙별 생성 완료 이용자 donut chart
+- [x] 어드민 로고 새 탭 홈 링크
+- [x] 점검 공지 수동 내리기 버튼
+- [x] 점검 완료 알림 신청자 통계
+- [x] Gmail BCC prefill용 미발송 이메일 복사 버튼
 
 ## 배포
 
-- [x] Spotify Premium 계정 기반 API 확인
+- [x] iTunes provider 배포 확인
 - [x] Neon production DB 연결
 - [x] migration 실제 적용
 - [x] Vercel 환경변수 등록
 - [x] Vercel 배포
-- [x] Discord 429 알림 구현
+- [x] 반복 검색 오류 Discord 알림 구현
+- [x] 검색 오류 3회 gate 기반 랜딩 점검 공지 ON
+- [x] 점검 알림 신청자 3일 후 삭제 cron 구현
 - [x] Google 검색용 metadata / site icon 설정
 - [ ] 배포 후 저장 / 공유 / admin 최종 재검증
