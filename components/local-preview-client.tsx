@@ -7,6 +7,7 @@ import { Download, Link2 } from "lucide-react";
 
 import { BoardPreview } from "@/components/board-preview";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_LOCALE, getCopy, Locale } from "@/lib/i18n/copy";
 import { generateBoardPreviewDataUrl } from "@/lib/preview-canvas";
 import { getOrCreateSessionId } from "@/lib/session";
 import { BoardSummary } from "@/lib/types";
@@ -17,30 +18,38 @@ const RESTORE_CREATE_STORAGE_KEY = "temptracks-restore-create";
 const PREVIEW_CAPTURE_WIDTH = 370;
 const PREVIEW_CAPTURE_HEIGHT = Math.round((PREVIEW_CAPTURE_WIDTH * 16) / 9);
 
-function buildShareCaption(boardTitle: string, artistName?: string) {
+function buildShareCaption(
+  boardTitle: string,
+  artistName: string | undefined,
+  locale: Locale
+) {
+  const t = getCopy(locale);
+  const isVariousArtists = !artistName || artistName === "Various Artists";
   const cleanArtistName =
-    artistName && artistName !== "Various Artists"
+    !isVariousArtists
       ? artistName.replace(/[^\p{L}\p{N}]/gu, "")
       : "";
   const englishArtistName =
-    artistName && artistName !== "Various Artists"
+    !isVariousArtists
       ? artistName.replace(/[^a-zA-Z0-9]/g, "")
       : "";
   const tags = [
-    "#기온별플리",
-    cleanArtistName ? `#기온별${cleanArtistName}` : "",
-    englishArtistName ? `#${englishArtistName}ByDegrees` : ""
+    t.share.hashtags.base,
+    isVariousArtists ? t.share.hashtags.englishBase : "",
+    cleanArtistName ? `${t.share.hashtags.artistPrefix}${cleanArtistName}` : "",
+    englishArtistName ? `#${englishArtistName}${t.share.hashtags.artistSuffix}` : ""
   ].filter(Boolean);
 
   return `${boardTitle}\n${tags.join(" ")}`;
 }
 
-function buildXShareText(boardTitle: string, artistName?: string) {
-  const caption = buildShareCaption(boardTitle, artistName);
+function buildXShareText(boardTitle: string, artistName: string | undefined, locale: Locale) {
+  const t = getCopy(locale);
+  const caption = buildShareCaption(boardTitle, artistName, locale);
 
   return caption.replace(boardTitle, `[${boardTitle}]`).replace(
     "\n",
-    "\n음악으로 기록하는 여러분의 계절도 공유해주세요 🎧\n"
+    `\n${t.share.xShareText}\n`
   );
 }
 
@@ -75,7 +84,13 @@ async function logClientEvent(eventType: string, metadata: Record<string, unknow
   });
 }
 
-export function LocalPreviewClient() {
+export function LocalPreviewClient({
+  locale = DEFAULT_LOCALE
+}: {
+  locale?: Locale;
+}) {
+  const t = getCopy(locale);
+  const createHref = locale === "en" ? "/en/create" : "/create";
   const [board, setBoard] = useState<BoardSummary | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState("");
@@ -104,13 +119,16 @@ export function LocalPreviewClient() {
 
     let canceled = false;
 
-    generateBoardPreviewDataUrl(board)
+    generateBoardPreviewDataUrl(board, {
+      brandText: t.boardPreview.brandText,
+      titleFallback: t.boardPreview.titleFallback
+    })
       .then((dataUrl) => {
         if (!canceled) setPreviewImageUrl(dataUrl);
       })
       .catch((error) => {
         console.error("Failed to create preview image", error);
-        if (!canceled) setPreviewImageError("이미지를 준비하지 못했어요. 새로고침 후 다시 시도해주세요.");
+        if (!canceled) setPreviewImageError(t.localPreview.previewFailed);
       });
 
     return () => {
@@ -175,12 +193,12 @@ export function LocalPreviewClient() {
     return (
       <main className="min-h-screen bg-[#fcf8f7] text-[#1c1b1b]">
         <div className="mx-auto flex min-h-screen w-full max-w-[450px] flex-col items-center justify-center px-10 text-center">
-          <p className="text-[22px] font-bold tracking-[-0.05em]">미리보기 데이터가 없어요.</p>
+          <p className="text-[22px] font-bold tracking-[-0.05em]">{t.localPreview.noDataTitle}</p>
           <Link
             className="mt-8 rounded-full bg-[#1a1a1a] px-8 py-4 text-sm font-bold text-white"
-            href="/create"
+            href={createHref}
           >
-            다시 만들기
+            {t.localPreview.remake}
           </Link>
         </div>
       </main>
@@ -192,7 +210,7 @@ export function LocalPreviewClient() {
       <div className="mx-auto min-h-screen w-full max-w-[450px] pb-24 pt-6">
         <header className="mb-7 flex items-center justify-center px-6">
           <Image
-            alt="기온별플리"
+            alt={t.common.appName}
             className="h-auto w-[124px]"
             height={38}
             priority
@@ -203,7 +221,7 @@ export function LocalPreviewClient() {
 
         {previewImageUrl ? (
           <img
-            alt={`${board.title} 미리보기 이미지`}
+            alt={t.localPreview.previewAlt.replace("{title}", board.title)}
             className="mx-auto w-full max-w-[370px] rounded-[2px]"
             onContextMenu={() => void logSaveLongPress("context_menu")}
             onPointerCancel={clearSaveLongPressTimeout}
@@ -218,7 +236,7 @@ export function LocalPreviewClient() {
           </p>
         ) : (
           <div className="mx-auto flex aspect-[9/16] w-full max-w-[370px] items-center justify-center bg-white/35 text-[13px] font-semibold text-[#b7b2af]">
-            미리보기 이미지를 준비 중이에요.
+            {t.localPreview.preparing}
           </div>
         )}
         <div className="pointer-events-none fixed -left-[9999px] top-0 w-[370px] overflow-hidden">
@@ -241,14 +259,14 @@ export function LocalPreviewClient() {
         <div className="relative mt-8 px-6 sm:px-10">
           {showSaveHint ? (
             <p className="pointer-events-none absolute bottom-[calc(100%-4px)] left-[calc(16.666667%+1rem)] z-10 w-fit max-w-[calc(100%-24px)] -translate-x-1/2 rounded-full bg-[rgba(216,211,208,0.86)] px-5 py-3 text-center text-[14px] font-semibold leading-[1.35] text-[#1c1b1b] opacity-100 shadow-[0_14px_28px_rgba(0,0,0,0.13)] backdrop-blur-sm after:absolute after:left-1/2 after:top-full after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[14px] after:border-t-[14px] after:border-x-transparent after:border-t-[rgba(216,211,208,0.86)]">
-              위 이미지를 길게 👆
+              {t.share.previewLongPressLine1}
               <br />
-              눌러 저장해주세요.
+              {t.share.previewLongPressLine2}
             </p>
           ) : null}
           {showLinkCopiedToast ? (
             <p className="pointer-events-none fixed left-1/2 top-1/2 z-50 w-[min(280px,calc(100%-64px))] -translate-x-1/2 -translate-y-1/2 rounded-[22px] bg-[rgba(216,211,208,0.92)] px-6 py-4 text-center text-[17px] font-bold leading-[1.4] tracking-[-0.04em] text-[#1c1b1b] shadow-[0_18px_34px_rgba(0,0,0,0.16)] backdrop-blur-sm">
-              링크가 복사되었습니다.
+              {t.share.linkCopied}
             </p>
           ) : null}
           <LocalPreviewActions
@@ -256,6 +274,7 @@ export function LocalPreviewClient() {
             boardId={board.id}
             boardSlug={board.slug}
             boardTitle={board.title}
+            locale={locale}
             onLinkCopied={() => setShowLinkCopiedToast(true)}
             onSaveHint={() => setShowSaveHint(true)}
             previewImageReady={Boolean(previewImageUrl)}
@@ -272,6 +291,7 @@ function LocalPreviewActions({
   boardId,
   boardSlug,
   boardTitle,
+  locale = DEFAULT_LOCALE,
   onLinkCopied,
   onSaveHint,
   previewImageReady,
@@ -281,17 +301,20 @@ function LocalPreviewActions({
   boardId: string;
   boardSlug: string;
   boardTitle: string;
+  locale?: Locale;
   onLinkCopied: () => void;
   onSaveHint: () => void;
   previewImageReady: boolean;
   showSaveHint: boolean;
 }) {
   const [saveError, setSaveError] = useState("");
+  const t = getCopy(locale);
+  const createHref = locale === "en" ? "/en/create" : "/create";
   const shareUrl = getAppShareUrl();
 
   async function handleDownload() {
     if (!previewImageReady) {
-      setSaveError("이미지 미리보기를 준비 중이에요. 잠시 후 다시 눌러주세요.");
+      setSaveError(t.share.previewPreparing);
       return;
     }
 
@@ -319,7 +342,7 @@ function LocalPreviewActions({
 
   async function handleXShare() {
     window.open(
-      buildXIntentUrl(buildXShareText(boardTitle, artistName)),
+      buildXIntentUrl(buildXShareText(boardTitle, artistName, locale)),
       "_blank",
       "noopener,noreferrer"
     );
@@ -334,7 +357,7 @@ function LocalPreviewActions({
     window.sessionStorage.removeItem(PREVIEW_STORAGE_KEY);
     window.sessionStorage.removeItem(CREATE_DRAFT_STORAGE_KEY);
     window.sessionStorage.removeItem(RESTORE_CREATE_STORAGE_KEY);
-    window.location.assign("/create");
+    window.location.assign(createHref);
   }
 
   return (
@@ -346,7 +369,7 @@ function LocalPreviewActions({
           type="button"
         >
           <Download className="h-4 w-4" />
-          저장
+          {t.common.save}
         </Button>
         <Button
           className="h-[52px] gap-1.5 rounded-full bg-[#1a1a1a] px-2 text-[13px] font-bold tracking-[-0.03em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
@@ -356,7 +379,7 @@ function LocalPreviewActions({
           <span aria-hidden="true" className="text-[17px] leading-none">
             X
           </span>
-          X로 공유
+          {t.share.xShare}
         </Button>
         <Button
           className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
@@ -364,7 +387,7 @@ function LocalPreviewActions({
           type="button"
         >
           <Link2 className="h-4 w-4" />
-          링크 공유
+          {t.share.linkShare}
         </Button>
       </div>
       <Button
@@ -373,7 +396,7 @@ function LocalPreviewActions({
         type="button"
         variant="secondary"
       >
-        새로 만들기
+        {t.localPreview.newBoard}
       </Button>
       {saveError ? (
         <p className="text-center text-xs font-medium text-[#ba1a1a]">{saveError}</p>

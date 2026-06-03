@@ -107,8 +107,8 @@ function splitPreviewTitle(title: string) {
   };
 }
 
-function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
-  const displayTitle = title || "기온별 플리";
+function drawTitle(ctx: CanvasRenderingContext2D, title: string, titleFallback: string) {
+  const displayTitle = title || titleFallback;
   const { mainTitle, byText } = splitPreviewTitle(displayTitle);
   const maxTitleWidth = 332;
   const mainTitleSize =
@@ -164,7 +164,10 @@ function drawTitle(ctx: CanvasRenderingContext2D, title: string) {
   return 48;
 }
 
-export async function generateBoardPreviewDataUrl(board: BoardSummary) {
+export async function generateBoardPreviewDataUrl(
+  board: BoardSummary,
+  options: { brandText?: string; titleFallback?: string } = {}
+) {
   const canvas = document.createElement("canvas");
   canvas.width = 740;
   canvas.height = 1316;
@@ -176,7 +179,7 @@ export async function generateBoardPreviewDataUrl(board: BoardSummary) {
   ctx.fillStyle = BACKGROUND;
   ctx.fillRect(0, 0, 370, 658);
 
-  const gridY = drawTitle(ctx, board.title);
+  const gridY = drawTitle(ctx, board.title, options.titleFallback ?? "기온별 플리");
 
   const gridX = 39;
   const rowHeight = 68;
@@ -265,7 +268,7 @@ export async function generateBoardPreviewDataUrl(board: BoardSummary) {
   ctx.textAlign = "center";
   ctx.font = titleFont(6.7, 600);
   ctx.fillStyle = "#b7b2af";
-  ctx.fillText("© 2026 기온별플리 By Degrees. All rights reserved.", 185, 650);
+  ctx.fillText(options.brandText ?? "© 2026 기온별플리 By Degrees. All rights reserved.", 185, 650);
 
   return canvas.toDataURL("image/png");
 }

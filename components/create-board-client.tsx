@@ -61,6 +61,7 @@ export function CreateBoardClient({
   const router = useRouter();
   const t = getCopy(locale);
   const landingHref = locale === "en" ? "/en" : "/";
+  const previewHref = locale === "en" ? "/en/preview" : "/preview";
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState<CreateStep>("nickname");
   const [nickname, setNickname] = useState("");
@@ -301,7 +302,7 @@ export function CreateBoardClient({
         );
         window.sessionStorage.setItem(CREATE_DRAFT_STORAGE_KEY, JSON.stringify(draft));
         window.sessionStorage.setItem(RESTORE_CREATE_STORAGE_KEY, "1");
-        router.push("/preview");
+        router.push(previewHref);
       } catch {
         setSaveError(t.create.imagePreviewFailed);
         return;
