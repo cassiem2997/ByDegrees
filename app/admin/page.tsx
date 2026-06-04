@@ -422,7 +422,7 @@ export default async function AdminPage({
 
         <div className="grid grid-cols-[repeat(4,minmax(180px,1fr))] gap-4 overflow-x-auto pb-1">
           <MetricCard title="방문자 수" label={period.metricLabel} tone="sky" values={summary.visitors} />
-          <MetricCard title="플레이리스트 생성 완료" label={period.metricLabel} tone="mint" values={summary.boardsCreated} />
+          <MetricCard title="생성 완료 건수" label={period.metricLabel} tone="mint" values={summary.boardsCreated} />
           <MetricCard title="이미지 길게 누른 횟수" label={period.metricLabel} tone="gold" values={summary.imageSaves} />
           <MetricCard title="이미지 및 링크 공유 횟수" label={period.metricLabel} tone="coral" values={summary.shares} />
         </div>
@@ -437,27 +437,27 @@ export default async function AdminPage({
               value={summary.visitors.current}
             />
             <FunnelStepCard
-              caption="미리보기까지 완료한 수"
-              title="생성 완료"
+              caption="미리보기까지 완료한 고유 세션"
+              title="생성 완료 이용자"
               tone="mint"
-              value={summary.boardsCreated.current}
+              value={summary.funnel.completedSessions}
             />
             <FunnelStepCard
-              caption="저장용 이미지를 길게 누른 횟수"
-              title="이미지 길게 누름"
+              caption="생성 완료 후 저장을 시도한 고유 세션"
+              title="저장 시도 이용자"
               tone="gold"
-              value={summary.imageSaves.current}
+              value={summary.funnel.savedCompletedSessions}
             />
             <FunnelStepCard
-              caption="X 공유 또는 링크 복사"
-              title="공유"
+              caption="생성 완료 후 공유를 시도한 고유 세션"
+              title="공유 이용자"
               tone="coral"
-              value={summary.shares.current}
+              value={summary.funnel.sharedCompletedSessions}
             />
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <RateCard
-              caption="방문자 대비 생성 완료"
+              caption="방문자 대비 생성 완료 이용자"
               progress={summary.funnel.visitToCreateRate}
               title="방문 → 생성"
               value={formatRate(summary.funnel.visitToCreateRate)}
@@ -621,10 +621,11 @@ export default async function AdminPage({
                   <EmptyText>아직 완성된 플레이리스트 데이터가 없습니다.</EmptyText>
                 ) : (
                   summary.topSongs.map((song, index) => (
-                    <div className="rounded-2xl bg-ink/5 px-4 py-3" key={song.title}>
+                    <div className="rounded-2xl bg-ink/5 px-4 py-3" key={song.providerTrackId}>
                       <p className="text-sm text-ink">
                         {index + 1}. {song.title}
                       </p>
+                      <p className="mt-1 truncate text-xs text-ink/45">{song.artistName}</p>
                       <p className="mt-1 text-xs text-ink/55">{song.count} placements</p>
                     </div>
                   ))

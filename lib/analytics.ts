@@ -62,6 +62,9 @@ export async function getAdminSummary(
       cumulative: 0
     },
     funnel: {
+      completedSessions: 0,
+      savedCompletedSessions: 0,
+      sharedCompletedSessions: 0,
       visitToCreateRate: 0,
       createToSaveRate: 0,
       createToShareRate: 0,
@@ -304,19 +307,23 @@ export async function getAdminSummary(
 
     const topSongs = (await sql(
       `
-        select s.title as title, count(*)::int as count
+        select
+          s.provider_track_id as "providerTrackId",
+          s.title as title,
+          s.artist_name as "artistName",
+          count(*)::int as count
         from board_items bi
         join boards b on b.id = bi.board_id
         join songs s on s.id = bi.song_id
         where coalesce(b.is_internal, false) = false
           and ($1::timestamptz is null or b.created_at >= $1::timestamptz)
           and ($2::timestamptz is null or b.created_at < $2::timestamptz)
-        group by s.title
-        order by count(*) desc, s.title asc
+        group by s.provider, s.provider_track_id, s.title, s.artist_name
+        order by count(*) desc, s.title asc, s.artist_name asc
         limit 10
       `,
       [rangeStart, rangeEnd]
-    )) as { title: string; count: number }[];
+    )) as { providerTrackId: string; title: string; artistName: string; count: number }[];
 
     const [averageSongs] = (await sql(
       `
@@ -439,6 +446,9 @@ export async function getAdminSummary(
         cumulative: shareCounts?.cumulative ?? 0
       },
       funnel: {
+        completedSessions,
+        savedCompletedSessions,
+        sharedCompletedSessions,
         visitToCreateRate: rate(completedSessions, currentVisitors),
         createToSaveRate: rate(savedCompletedSessions, completedSessions),
         createToShareRate: rate(sharedCompletedSessions, completedSessions),

@@ -1,5 +1,11 @@
 import { LocalPreviewClient } from "@/components/local-preview-client";
+import { PageViewTracker } from "@/components/page-view-tracker";
 
 export default function PreviewPage() {
-  return <LocalPreviewClient />;
+  return (
+    <>
+      <PageViewTracker metadata={{ page: "preview" }} />
+      <LocalPreviewClient />
+    </>
+  );
 }

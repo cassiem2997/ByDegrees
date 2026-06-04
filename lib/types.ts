@@ -87,6 +87,9 @@ export type AdminSummary = {
     cumulative: number;
   };
   funnel: {
+    completedSessions: number;
+    savedCompletedSessions: number;
+    sharedCompletedSessions: number;
     visitToCreateRate: number;
     createToSaveRate: number;
     createToShareRate: number;
@@ -101,6 +104,6 @@ export type AdminSummary = {
   completedCountries: Array<{ name: string; count: number }>;
   completedContinents: Array<{ name: string; count: number }>;
   topArtists: Array<{ name: string; count: number }>;
-  topSongs: Array<{ title: string; count: number }>;
+  topSongs: Array<{ providerTrackId: string; title: string; artistName: string; count: number }>;
   dailySeries: Array<{ date: string; pageViews: number; creates: number; saves: number; shares: number }>;
 };
