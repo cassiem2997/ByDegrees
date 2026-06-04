@@ -72,6 +72,40 @@ function MetricCard({
   );
 }
 
+function CompletionMetricCard({
+  label,
+  boardValues,
+  completedSessions
+}: {
+  label: string;
+  boardValues: { current: number; cumulative: number };
+  completedSessions: number;
+}) {
+  return (
+    <div className="rounded-[28px] border border-white/75 bg-gradient-to-br from-mint/35 to-sky/10 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.08)] backdrop-blur">
+      <p className="text-sm font-semibold text-ink/72">생성 완료</p>
+      <p className="mt-3 text-3xl font-semibold text-ink">
+        {formatShortNumber(completedSessions)}
+      </p>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {[
+          ["이용자", completedSessions],
+          ["보드", boardValues.current],
+          ["누적 보드", boardValues.cumulative]
+        ].map(([label, value]) => (
+          <div className="rounded-2xl bg-white/55 px-3 py-2" key={label}>
+            <p className="text-xs text-ink/48">{label}</p>
+            <p className="mt-1 text-sm font-semibold text-ink">
+              {formatShortNumber(Number(value))}
+            </p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-ink/45">{label} 이용자 기준, 보드 수 별도 표시</p>
+    </div>
+  );
+}
+
 function RateCard({
   title,
   value,
@@ -422,7 +456,11 @@ export default async function AdminPage({
 
         <div className="grid grid-cols-[repeat(4,minmax(180px,1fr))] gap-4 overflow-x-auto pb-1">
           <MetricCard title="방문자 수" label={period.metricLabel} tone="sky" values={summary.visitors} />
-          <MetricCard title="생성 완료 건수" label={period.metricLabel} tone="mint" values={summary.boardsCreated} />
+          <CompletionMetricCard
+            boardValues={summary.boardsCreated}
+            completedSessions={summary.funnel.completedSessions}
+            label={period.metricLabel}
+          />
           <MetricCard title="이미지 길게 누른 횟수" label={period.metricLabel} tone="gold" values={summary.imageSaves} />
           <MetricCard title="이미지 및 링크 공유 횟수" label={period.metricLabel} tone="coral" values={summary.shares} />
         </div>
