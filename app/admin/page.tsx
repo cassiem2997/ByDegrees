@@ -21,10 +21,14 @@ import {
 } from "@/lib/admin-period";
 import { getMaintenanceNoticeState } from "@/lib/db/maintenance-notice";
 import { getMaintenanceSubscriberStats } from "@/lib/db/maintenance-subscribers";
-import { cn, formatShortNumber } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+function formatAdminNumber(value: number) {
+  return value.toLocaleString("ko-KR");
+}
 
 function MetricCard({
   title,
@@ -53,7 +57,7 @@ function MetricCard({
     >
       <p className="text-sm font-semibold text-ink/72">{title}</p>
       <p className="mt-3 text-3xl font-semibold text-ink">
-        {formatShortNumber(values.current)}
+        {formatAdminNumber(values.current)}
       </p>
       <div className="mt-4 grid grid-cols-2 gap-2">
         {[
@@ -63,7 +67,7 @@ function MetricCard({
           <div className="rounded-2xl bg-white/55 px-3 py-2" key={label}>
             <p className="text-xs text-ink/48">{label}</p>
             <p className="mt-1 text-sm font-semibold text-ink">
-              {formatShortNumber(Number(value))}
+              {formatAdminNumber(Number(value))}
             </p>
           </div>
         ))}
@@ -85,7 +89,7 @@ function CompletionMetricCard({
     <div className="rounded-[28px] border border-white/75 bg-gradient-to-br from-mint/35 to-sky/10 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.08)] backdrop-blur">
       <p className="text-sm font-semibold text-ink/72">생성 완료</p>
       <p className="mt-3 text-3xl font-semibold text-ink">
-        {formatShortNumber(completedSessions)}
+        {formatAdminNumber(completedSessions)}
       </p>
       <div className="mt-4 grid grid-cols-3 gap-2">
         {[
@@ -96,7 +100,7 @@ function CompletionMetricCard({
           <div className="rounded-2xl bg-white/55 px-3 py-2" key={label}>
             <p className="text-xs text-ink/48">{label}</p>
             <p className="mt-1 text-sm font-semibold text-ink">
-              {formatShortNumber(Number(value))}
+              {formatAdminNumber(Number(value))}
             </p>
           </div>
         ))}
@@ -157,7 +161,7 @@ function FunnelStepCard({
       <div className={cn("mb-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold", toneClass)}>
         {title}
       </div>
-      <p className="text-3xl font-semibold text-ink">{formatShortNumber(value)}</p>
+      <p className="text-3xl font-semibold text-ink">{formatAdminNumber(value)}</p>
       <p className="mt-1 text-xs text-ink/45">{caption}</p>
     </div>
   );
@@ -286,7 +290,7 @@ function DonutChartCard({
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-ink/38">Total</span>
-              <span className="mt-1 text-2xl font-semibold text-ink">{formatShortNumber(total)}</span>
+              <span className="mt-1 text-2xl font-semibold text-ink">{formatAdminNumber(total)}</span>
             </div>
           </div>
           <div className="space-y-2">
@@ -301,7 +305,7 @@ function DonutChartCard({
                   />
                   <span className="truncate text-sm text-ink">{item.name}</span>
                   <span className="text-xs font-semibold text-ink/60">
-                    {formatShortNumber(item.count)} · {percent.toFixed(percent >= 10 ? 0 : 1)}%
+                    {formatAdminNumber(item.count)} · {percent.toFixed(percent >= 10 ? 0 : 1)}%
                   </span>
                 </div>
               );
