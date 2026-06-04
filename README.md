@@ -114,8 +114,9 @@ npm run migrate
 관리자 페이지는 `/admin/login`에서 패스코드로 진입합니다. 통계는 기간 단위로 이동하며 확인할 수 있습니다.
 
 - 방문 수
-- 플레이리스트 생성 완료 수
-- 방문 대비 생성 완료율
+- 생성 완료 이용자 수
+- 생성 완료 보드 수
+- 방문 대비 생성 완료 이용자 전환율
 - 생성 완료 대비 이미지 길게 누른 비율
 - 생성 완료 대비 공유율
 - 평균 선택 곡 수
@@ -147,7 +148,8 @@ npm run migrate
 4. 배포 URL을 `NEXT_PUBLIC_APP_URL`에 반영합니다.
 5. Discord 알림을 사용한다면 `DISCORD_ALERT_WEBHOOK_URL`을 등록합니다.
 6. Cron cleanup을 사용한다면 `CRON_SECRET`을 등록합니다.
-7. 배포 후 모바일 Safari/Chrome에서 한국어/영어 생성, 저장, X 공유, 링크 복사를 확인합니다.
+7. `itunes`를 production branch로 쓸 때는 Project Settings → Environments → Production → Branch Tracking을 `itunes`로 설정합니다.
+8. 배포 후 모바일 Safari/Chrome에서 한국어/영어 생성, 저장, X 공유, 링크 복사를 확인합니다.
 
 ## Scripts
 
