@@ -89,6 +89,8 @@
 - 랜딩 좌상단 `KOR | ENG` 스위치로 언어별 랜딩 이동
 - 생성과 미리보기 플로우는 locale route를 유지
 - X 공유 텍스트는 언어별 문구를 쓰되 해시태그 정책은 동일하게 유지
+- 영어권 국가에서 언어 선택 쿠키가 없는 `/` 방문자는 `/en`으로 soft redirect
+- 사용자가 `KOR | ENG`를 직접 선택하면 `bydegrees_locale` 쿠키로 선택을 기억
 
 ## 7. Sharing Policy
 
