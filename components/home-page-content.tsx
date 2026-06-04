@@ -18,13 +18,13 @@ function LanguageToggle({ locale }: { locale: Locale }) {
       aria-label="Language"
       className="fixed left-4 top-4 z-40 inline-flex items-center rounded-full border border-[#e1dbd8] bg-[#fcf8f7]/86 p-1 text-[12px] font-extrabold tracking-[0.02em] shadow-[0_10px_28px_rgba(28,27,27,0.08)] backdrop-blur"
     >
-      <Link className={`${linkClass} ${locale === "ko" ? activeClass : inactiveClass}`} href="/">
+      <Link className={`${linkClass} ${locale === "ko" ? activeClass : inactiveClass}`} href="/?lang=ko">
         KOR
       </Link>
       <span className="px-0.5 text-[#c9c0bc]" aria-hidden="true">
         |
       </span>
-      <Link className={`${linkClass} ${locale === "en" ? activeClass : inactiveClass}`} href="/en">
+      <Link className={`${linkClass} ${locale === "en" ? activeClass : inactiveClass}`} href="/en?lang=en">
         ENG
       </Link>
     </nav>
