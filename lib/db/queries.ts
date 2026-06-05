@@ -27,6 +27,7 @@ type BoardDetailRow = {
   preset_max_temp: number | null;
   preset_sort_order: number;
   slot_index: number | null;
+  song_provider: MusicTrackResult["provider"] | null;
   song_provider_track_id: string | null;
   song_title: string | null;
   song_artist_name: string | null;
@@ -140,7 +141,7 @@ export async function getBoardBySlug(slug: string): Promise<BoardSummary | null>
   try {
     const sql = getSql();
     const rows = (await sql(
-      "select b.id as board_id, b.slug as board_slug, b.title as board_title, b.artist_name as board_artist_name, b.is_public as board_is_public, b.template_key as board_template_key, b.created_at as board_created_at, tp.id as preset_id, tp.template_key as preset_template_key, tp.label as preset_label, tp.min_temp as preset_min_temp, tp.max_temp as preset_max_temp, tp.sort_order as preset_sort_order, bi.slot_index as slot_index, s.provider_track_id as song_provider_track_id, s.title as song_title, s.artist_name as song_artist_name, s.album_name as song_album_name, s.album_art_url as song_album_art_url, s.external_url as song_external_url, s.preview_url as song_preview_url from boards b join temperature_presets tp on tp.template_key = b.template_key left join board_items bi on bi.board_id = b.id and bi.temperature_preset_id = tp.id left join songs s on s.id = bi.song_id where b.slug = $1 order by tp.sort_order asc, bi.slot_index asc nulls last",
+      "select b.id as board_id, b.slug as board_slug, b.title as board_title, b.artist_name as board_artist_name, b.is_public as board_is_public, b.template_key as board_template_key, b.created_at as board_created_at, tp.id as preset_id, tp.template_key as preset_template_key, tp.label as preset_label, tp.min_temp as preset_min_temp, tp.max_temp as preset_max_temp, tp.sort_order as preset_sort_order, bi.slot_index as slot_index, s.provider as song_provider, s.provider_track_id as song_provider_track_id, s.title as song_title, s.artist_name as song_artist_name, s.album_name as song_album_name, s.album_art_url as song_album_art_url, s.external_url as song_external_url, s.preview_url as song_preview_url from boards b join temperature_presets tp on tp.template_key = b.template_key left join board_items bi on bi.board_id = b.id and bi.temperature_preset_id = tp.id left join songs s on s.id = bi.song_id where b.slug = $1 order by tp.sort_order asc, bi.slot_index asc nulls last",
       [slug]
     )) as BoardDetailRow[];
 
@@ -166,7 +167,7 @@ export async function getBoardBySlug(slug: string): Promise<BoardSummary | null>
 
       if (row.slot_index !== null && row.song_provider_track_id) {
         presetMap.get(row.preset_id)!.songs[row.slot_index] = {
-          provider: "spotify",
+          provider: row.song_provider ?? "spotify",
           providerTrackId: row.song_provider_track_id,
           title: row.song_title ?? "",
           artistName: row.song_artist_name ?? "",
@@ -201,13 +202,13 @@ export async function getFeaturedBoards() {
     preset,
     songs: [
       {
-        provider: "spotify" as const,
-        providerTrackId: `sample-${index}-1`,
+        provider: "itunes" as const,
+        providerTrackId: `itunes:sample-${index}-1`,
         title: ["Red Flavor", "Hello Future", "Love Dive", "Butterfly"][index % 4],
         artistName: ["Red Velvet", "NCT DREAM", "IVE", "LOONA"][index % 4],
         albumName: "Fan Selected",
         albumArtUrl: "",
-        externalUrl: "https://open.spotify.com/",
+        externalUrl: "https://music.apple.com/",
         previewUrl: null
       },
       null,

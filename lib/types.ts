@@ -18,8 +18,10 @@ export type TemperaturePreset = {
   sortOrder: number;
 };
 
+export type MusicProvider = "spotify" | "itunes";
+
 export type MusicTrackResult = {
-  provider: "spotify";
+  provider: MusicProvider;
   providerTrackId: string;
   title: string;
   artistName: string;
@@ -30,7 +32,7 @@ export type MusicTrackResult = {
 };
 
 export type MusicArtistResult = {
-  provider: "spotify";
+  provider: MusicProvider;
   providerArtistId: string;
   name: string;
   imageUrl: string;

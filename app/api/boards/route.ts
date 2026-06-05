@@ -6,7 +6,7 @@ import { logEvent } from "@/lib/analytics";
 import { createBoard } from "@/lib/db/queries";
 
 const songSchema = z.object({
-  provider: z.literal("spotify"),
+  provider: z.enum(["spotify", "itunes"]),
   providerTrackId: z.string(),
   title: z.string().optional().default(""),
   artistName: z.string().optional().default(""),

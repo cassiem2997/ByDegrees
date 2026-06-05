@@ -77,7 +77,8 @@ async function getStaleCachedMusicSearch<T extends "artist" | "track">(
   if (stale) return stale;
 
   const dbStale = await getCachedMusicSearch(kind, cacheKey, {
-    allowStale: true
+    allowStale: true,
+    provider: "itunes"
   });
   if (dbStale) {
     setCachedSearch(cacheKey, dbStale);
@@ -116,7 +117,7 @@ export class ITunesMusicProvider implements MusicProvider {
     const cached = getCachedSearch<MusicArtistResult[]>(cacheKey);
     if (cached) return cached;
 
-    const dbCached = await getCachedMusicSearch("artist", cacheKey);
+    const dbCached = await getCachedMusicSearch("artist", cacheKey, { provider: "itunes" });
     if (dbCached) {
       setCachedSearch(cacheKey, dbCached);
       return dbCached;
@@ -136,7 +137,7 @@ export class ITunesMusicProvider implements MusicProvider {
       const artists = results
         .filter((artist) => artist.artistId && artist.artistName)
         .map((artist) => ({
-          provider: "spotify" as const,
+          provider: "itunes" as const,
           providerArtistId: `itunes:${artist.artistId}`,
           name: artist.artistName ?? "",
           imageUrl: "",
@@ -146,7 +147,7 @@ export class ITunesMusicProvider implements MusicProvider {
         }));
 
       setCachedSearch(cacheKey, artists);
-      await setCachedMusicSearch("artist", cacheKey, artists);
+      await setCachedMusicSearch("artist", cacheKey, artists, "itunes");
       return artists;
     } catch (error) {
       const stale = await getStaleCachedMusicSearch("artist", cacheKey);
@@ -161,7 +162,7 @@ export class ITunesMusicProvider implements MusicProvider {
     const cached = getCachedSearch<MusicTrackResult[]>(cacheKey);
     if (cached) return cached;
 
-    const dbCached = await getCachedMusicSearch("track", cacheKey);
+    const dbCached = await getCachedMusicSearch("track", cacheKey, { provider: "itunes" });
     if (dbCached) {
       setCachedSearch(cacheKey, dbCached);
       return dbCached;
@@ -181,7 +182,7 @@ export class ITunesMusicProvider implements MusicProvider {
       const tracks = results
         .filter((track) => track.trackId && track.trackName && track.artistName)
         .map((track) => ({
-          provider: "spotify" as const,
+          provider: "itunes" as const,
           providerTrackId: `itunes:${track.trackId}`,
           title: track.trackName ?? "",
           artistName: track.artistName ?? "",
@@ -192,7 +193,7 @@ export class ITunesMusicProvider implements MusicProvider {
         }));
 
       setCachedSearch(cacheKey, tracks);
-      await setCachedMusicSearch("track", cacheKey, tracks);
+      await setCachedMusicSearch("track", cacheKey, tracks, "itunes");
       return tracks;
     } catch (error) {
       const stale = await getStaleCachedMusicSearch("track", cacheKey);
