@@ -103,6 +103,27 @@ export type AdminSummary = {
   visitorContinents: Array<{ name: string; count: number }>;
   completedCountries: Array<{ name: string; count: number }>;
   completedContinents: Array<{ name: string; count: number }>;
+  countryConversions: Array<{
+    name: string;
+    visitors: number;
+    creators: number;
+    boards: number;
+    conversionRate: number;
+  }>;
+  languageConversions: Array<{
+    name: string;
+    visitors: number;
+    creators: number;
+    boards: number;
+    conversionRate: number;
+  }>;
+  geoRedirectConversions: Array<{
+    name: string;
+    visitors: number;
+    creators: number;
+    boards: number;
+    conversionRate: number;
+  }>;
   topArtists: Array<{ name: string; count: number }>;
   topSongs: Array<{ providerTrackId: string; title: string; artistName: string; count: number }>;
   dailySeries: Array<{ date: string; pageViews: number; creates: number; saves: number; shares: number }>;

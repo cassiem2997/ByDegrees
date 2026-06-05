@@ -78,6 +78,9 @@ export async function getAdminSummary(
     visitorContinents: [],
     completedCountries: [],
     completedContinents: [],
+    countryConversions: [],
+    languageConversions: [],
+    geoRedirectConversions: [],
     topArtists: [],
     topSongs: [],
     dailySeries: []
@@ -289,6 +292,122 @@ export async function getAdminSummary(
       [rangeStart, rangeEnd]
     )) as { name: string; count: number }[];
 
+    const countryConversions = (await sql(
+      `
+        with visitor_sessions as (
+          select distinct on (session_id)
+            session_id,
+            coalesce(metadata->>'country', '') as country
+          from events
+          where event_type = 'page_view'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+          order by session_id, created_at asc
+        ),
+        created_sessions as (
+          select session_id, count(*)::int as board_count
+          from events
+          where event_type = 'create_board'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+          group by session_id
+        )
+        select
+          country as name,
+          count(*)::int as visitors,
+          count(*) filter (where coalesce(board_count, 0) > 0)::int as creators,
+          coalesce(sum(board_count), 0)::int as boards,
+          round((count(*) filter (where coalesce(board_count, 0) > 0))::numeric * 100 / nullif(count(*), 0), 1)::float as "conversionRate"
+        from visitor_sessions vs
+        left join created_sessions cs on cs.session_id = vs.session_id
+        where country <> ''
+        group by country
+        order by count(*) desc, country asc
+        limit 15
+      `,
+      [rangeStart, rangeEnd]
+    )) as Array<{ name: string; visitors: number; creators: number; boards: number; conversionRate: number }>;
+
+    const languageConversions = (await sql(
+      `
+        with visitor_sessions as (
+          select distinct on (session_id)
+            session_id,
+            case
+              when coalesce(metadata->>'page', '') like '%_en'
+                or coalesce(metadata->>'path', '') like '/en%'
+              then 'English'
+              else 'Korean'
+            end as language
+          from events
+          where event_type = 'page_view'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+          order by session_id, created_at asc
+        ),
+        created_sessions as (
+          select session_id, count(*)::int as board_count
+          from events
+          where event_type = 'create_board'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+          group by session_id
+        )
+        select
+          language as name,
+          count(*)::int as visitors,
+          count(*) filter (where coalesce(board_count, 0) > 0)::int as creators,
+          coalesce(sum(board_count), 0)::int as boards,
+          round((count(*) filter (where coalesce(board_count, 0) > 0))::numeric * 100 / nullif(count(*), 0), 1)::float as "conversionRate"
+        from visitor_sessions vs
+        left join created_sessions cs on cs.session_id = vs.session_id
+        group by language
+        order by visitors desc
+      `,
+      [rangeStart, rangeEnd]
+    )) as Array<{ name: string; visitors: number; creators: number; boards: number; conversionRate: number }>;
+
+    const geoRedirectConversions = (await sql(
+      `
+        with visitor_sessions as (
+          select distinct on (session_id)
+            session_id,
+            case
+              when coalesce(metadata->>'geo_redirect', '') = 'true' then 'Geo redirect'
+              else 'Direct English'
+            end as segment
+          from events
+          where event_type = 'page_view'
+            and (
+              coalesce(metadata->>'page', '') like '%_en'
+              or coalesce(metadata->>'path', '') like '/en%'
+            )
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+          order by session_id, created_at asc
+        ),
+        created_sessions as (
+          select session_id, count(*)::int as board_count
+          from events
+          where event_type = 'create_board'
+            and ($1::timestamptz is null or created_at >= $1::timestamptz)
+            and ($2::timestamptz is null or created_at < $2::timestamptz)
+          group by session_id
+        )
+        select
+          segment as name,
+          count(*)::int as visitors,
+          count(*) filter (where coalesce(board_count, 0) > 0)::int as creators,
+          coalesce(sum(board_count), 0)::int as boards,
+          round((count(*) filter (where coalesce(board_count, 0) > 0))::numeric * 100 / nullif(count(*), 0), 1)::float as "conversionRate"
+        from visitor_sessions vs
+        left join created_sessions cs on cs.session_id = vs.session_id
+        group by segment
+        order by visitors desc
+      `,
+      [rangeStart, rangeEnd]
+    )) as Array<{ name: string; visitors: number; creators: number; boards: number; conversionRate: number }>;
+
     const topArtists = (await sql(
       `
         select metadata->>'artist' as name, count(*)::int as count
@@ -480,6 +599,9 @@ export async function getAdminSummary(
         name: continentName(item.name),
         count: item.count
       })),
+      countryConversions,
+      languageConversions,
+      geoRedirectConversions,
       topArtists,
       topSongs,
       dailySeries: dailySeries.map((entry) => ({

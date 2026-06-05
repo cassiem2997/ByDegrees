@@ -11,6 +11,15 @@ export function PageViewTracker({
 }) {
   useEffect(() => {
     const sessionId = getOrCreateSessionId();
+    const searchParams = new URLSearchParams(window.location.search);
+    const pageMetadata = {
+      path: window.location.pathname,
+      ref: searchParams.get("ref") ?? undefined,
+      geo_redirect: searchParams.get("geo_redirect") === "1" ? true : undefined,
+      utm_source: searchParams.get("utm_source") ?? undefined,
+      utm_medium: searchParams.get("utm_medium") ?? undefined,
+      utm_campaign: searchParams.get("utm_campaign") ?? undefined
+    };
 
     fetch("/api/events", {
       method: "POST",
@@ -20,7 +29,10 @@ export function PageViewTracker({
       body: JSON.stringify({
         eventType: "page_view",
         sessionId,
-        metadata
+        metadata: {
+          ...pageMetadata,
+          ...metadata
+        }
       })
     }).catch(() => null);
   }, [metadata]);

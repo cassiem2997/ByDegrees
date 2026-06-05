@@ -49,6 +49,7 @@ export function proxy(request: NextRequest) {
     if (!locale && ENGLISH_REDIRECT_COUNTRIES.has(country)) {
       const url = request.nextUrl.clone();
       url.pathname = "/en";
+      url.searchParams.set("geo_redirect", "1");
       return NextResponse.redirect(url);
     }
   }

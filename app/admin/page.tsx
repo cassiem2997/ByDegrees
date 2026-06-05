@@ -317,6 +317,65 @@ function DonutChartCard({
   );
 }
 
+type ConversionDatum = {
+  name: string;
+  visitors: number;
+  creators: number;
+  boards: number;
+  conversionRate: number;
+};
+
+function ConversionTableCard({
+  title,
+  caption,
+  data,
+  emptyText
+}: {
+  title: string;
+  caption: string;
+  data: ConversionDatum[];
+  emptyText: string;
+}) {
+  return (
+    <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
+      <p className="text-sm font-semibold text-ink">{title}</p>
+      <p className="mt-1 text-xs text-ink/45">{caption}</p>
+      {data.length === 0 ? (
+        <div className="mt-4">
+          <EmptyText>{emptyText}</EmptyText>
+        </div>
+      ) : (
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[430px] border-separate border-spacing-y-2 text-left">
+            <thead>
+              <tr className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/38">
+                <th className="px-3">구분</th>
+                <th className="px-3 text-right">방문</th>
+                <th className="px-3 text-right">이용자</th>
+                <th className="px-3 text-right">보드</th>
+                <th className="px-3 text-right">전환</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((item) => (
+                <tr className="rounded-2xl bg-ink/5 text-sm text-ink" key={item.name}>
+                  <td className="rounded-l-2xl px-3 py-2 font-semibold">{item.name}</td>
+                  <td className="px-3 py-2 text-right">{formatAdminNumber(item.visitors)}</td>
+                  <td className="px-3 py-2 text-right">{formatAdminNumber(item.creators)}</td>
+                  <td className="px-3 py-2 text-right">{formatAdminNumber(item.boards)}</td>
+                  <td className="rounded-r-2xl px-3 py-2 text-right font-semibold">
+                    {formatRate(item.conversionRate)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PeriodNavigation({ period }: { period: ReturnType<typeof normalizeAdminPeriod> }) {
   const units: Array<{ value: AdminPeriodUnit; label: string }> = [
     { value: "day", label: "일일" },
@@ -582,6 +641,30 @@ export default async function AdminPage({
               data={summary.visitorCountries}
               emptyText="아직 집계된 데이터가 없습니다."
               title="국가별 방문자 수"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <SectionHeader eyebrow="Conversion" title="국가와 언어 전환율" />
+          <div className="grid gap-4 xl:grid-cols-3">
+            <ConversionTableCard
+              caption="방문 세션 대비 생성 완료 이용자 기준"
+              data={summary.countryConversions}
+              emptyText="아직 국가별 전환 데이터가 없습니다."
+              title="국가별 전환율"
+            />
+            <ConversionTableCard
+              caption="첫 진입 페이지 언어 기준"
+              data={summary.languageConversions}
+              emptyText="아직 언어별 전환 데이터가 없습니다."
+              title="언어별 전환율"
+            />
+            <ConversionTableCard
+              caption="영어 페이지 첫 진입 세션 기준"
+              data={summary.geoRedirectConversions}
+              emptyText="아직 geo redirect 전환 데이터가 없습니다."
+              title="Geo redirect 성과"
             />
           </div>
         </div>
