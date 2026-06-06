@@ -110,69 +110,168 @@ function CompletionMetricCard({
   );
 }
 
-function RateCard({
-  title,
-  value,
-  caption,
-  progress
-}: {
-  title: string;
-  value: string;
-  caption: string;
-  progress: number;
-}) {
-  return (
-    <div className="rounded-[24px] border border-white/70 bg-white/72 p-5 shadow-[0_14px_34px_rgba(27,30,70,0.05)] backdrop-blur">
-      <p className="text-xs font-semibold text-ink/50">{title}</p>
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <p className="text-2xl font-semibold text-ink">{value}</p>
-        <div className="mb-1 h-2 flex-1 overflow-hidden rounded-full bg-ink/8">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-coral via-gold to-sky"
-            style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
-          />
-        </div>
-      </div>
-      <p className="mt-1 text-xs text-ink/45">{caption}</p>
-    </div>
-  );
-}
-
-function FunnelStepCard({
-  title,
-  value,
-  caption,
-  tone
-}: {
-  title: string;
-  value: number;
-  caption: string;
-  tone: "sky" | "mint" | "gold" | "coral";
-}) {
-  const toneClass = {
-    sky: "bg-sky/16 text-ink",
-    mint: "bg-mint/18 text-ink",
-    gold: "bg-gold/22 text-ink",
-    coral: "bg-coral/14 text-coral"
-  }[tone];
-
-  return (
-    <div className="rounded-[24px] border border-white/70 bg-white/72 p-4 shadow-[0_14px_34px_rgba(27,30,70,0.05)] backdrop-blur">
-      <div className={cn("mb-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold", toneClass)}>
-        {title}
-      </div>
-      <p className="text-3xl font-semibold text-ink">{formatAdminNumber(value)}</p>
-      <p className="mt-1 text-xs text-ink/45">{caption}</p>
-    </div>
-  );
-}
-
 function formatRate(value: number) {
   return `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
 }
 
 function formatAverage(value: number) {
   return `${value.toFixed(value % 1 === 0 ? 0 : 1)}곡`;
+}
+
+function clampPercent(value: number) {
+  return Math.min(Math.max(value, 0), 100);
+}
+
+function rate(numerator: number, denominator: number) {
+  return denominator > 0 ? (numerator / denominator) * 100 : 0;
+}
+
+function FunnelVisualization({
+  visitors,
+  completedSessions,
+  savedCompletedSessions,
+  sharedCompletedSessions,
+  averageSongsPerBoard
+}: {
+  visitors: number;
+  completedSessions: number;
+  savedCompletedSessions: number;
+  sharedCompletedSessions: number;
+  averageSongsPerBoard: number;
+}) {
+  const visitToCreateRate = rate(completedSessions, visitors);
+  const createToSaveRate = rate(savedCompletedSessions, completedSessions);
+  const createToShareRate = rate(sharedCompletedSessions, completedSessions);
+  const visitorBase = Math.max(visitors, 1);
+  const droppedBeforeCreate = Math.max(visitors - completedSessions, 0);
+  const notSavedAfterCreate = Math.max(completedSessions - savedCompletedSessions, 0);
+  const notSharedAfterCreate = Math.max(completedSessions - sharedCompletedSessions, 0);
+  const mainStages = [
+    {
+      label: "방문",
+      count: visitors,
+      caption: "고유 세션",
+      percent: 100,
+      fillClass: "from-sky to-mint"
+    },
+    {
+      label: "생성 완료",
+      count: completedSessions,
+      caption: `방문 대비 ${formatRate(visitToCreateRate)}`,
+      percent: rate(completedSessions, visitorBase),
+      fillClass: "from-mint to-gold"
+    }
+  ];
+  const actionStages = [
+    {
+      label: "저장 시도",
+      count: savedCompletedSessions,
+      caption: `미저장 ${formatAdminNumber(notSavedAfterCreate)}`,
+      rate: createToSaveRate,
+      fillClass: "from-gold to-peach"
+    },
+    {
+      label: "공유",
+      count: sharedCompletedSessions,
+      caption: `미공유 ${formatAdminNumber(notSharedAfterCreate)}`,
+      rate: createToShareRate,
+      fillClass: "from-coral to-gold"
+    }
+  ];
+
+  return (
+    <div className="rounded-[30px] border border-white/75 bg-white/78 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur">
+      <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
+        <div>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-ink">방문 → 생성 완료</p>
+              <p className="mt-1 text-xs text-ink/45">방문 세션을 기준으로 생성 완료까지 남은 비율입니다.</p>
+            </div>
+            <div className="rounded-2xl bg-ink px-4 py-3 text-right text-white">
+              <p className="text-[11px] font-semibold text-white/55">방문 → 생성</p>
+              <p className="mt-1 text-2xl font-semibold">{formatRate(visitToCreateRate)}</p>
+            </div>
+          </div>
+
+          <div className="mt-5 space-y-4">
+            {mainStages.map((stage) => (
+              <div
+                className="grid gap-3 rounded-[24px] bg-ink/5 p-4 sm:grid-cols-[150px_1fr_72px] sm:items-center"
+                key={stage.label}
+              >
+                <div>
+                  <p className="text-sm font-semibold text-ink">{stage.label}</p>
+                  <p className="mt-1 text-xs text-ink/45">{stage.caption}</p>
+                </div>
+                <div>
+                  <div className="h-8 overflow-hidden rounded-full bg-white/80 shadow-inner">
+                    <div
+                      className={cn("h-full rounded-full bg-gradient-to-r", stage.fillClass)}
+                      style={{ width: `${clampPercent(stage.percent)}%` }}
+                    />
+                  </div>
+                  {stage.label === "생성 완료" ? (
+                    <p className="mt-2 text-xs text-ink/42">
+                      생성 전 이탈 {formatAdminNumber(droppedBeforeCreate)}
+                    </p>
+                  ) : null}
+                </div>
+                <p className="text-right text-2xl font-semibold text-ink">
+                  {formatAdminNumber(stage.count)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-[26px] bg-gradient-to-br from-white/86 to-sky/12 p-4">
+          <p className="text-sm font-semibold text-ink">생성 후 행동</p>
+          <p className="mt-1 text-xs text-ink/45">생성 완료 세션을 기준으로 저장과 공유를 따로 봅니다.</p>
+          <div className="mt-4 space-y-3">
+            {actionStages.map((stage) => (
+              <div className="rounded-[22px] bg-white/72 p-4" key={stage.label}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{stage.label}</p>
+                    <p className="mt-1 text-xs text-ink/45">{stage.caption}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-ink">{formatRate(stage.rate)}</p>
+                    <p className="mt-1 text-xs text-ink/45">{formatAdminNumber(stage.count)}</p>
+                  </div>
+                </div>
+                <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-ink/8">
+                  <div
+                    className={cn("h-full rounded-full bg-gradient-to-r", stage.fillClass)}
+                    style={{ width: `${clampPercent(stage.rate)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-3 rounded-[22px] bg-ink/5 p-4">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-ink">평균 선택 곡 수</p>
+                <p className="mt-1 text-xs text-ink/45">완성된 플리 1개당 평균</p>
+              </div>
+              <p className="text-2xl font-semibold text-ink">
+                {formatAverage(averageSongsPerBoard)}
+              </p>
+            </div>
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-white/80">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sky via-mint to-gold"
+                style={{ width: `${clampPercent((averageSongsPerBoard / 24) * 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function SectionHeader({
@@ -530,58 +629,13 @@ export default async function AdminPage({
 
         <div className="space-y-3">
           <SectionHeader eyebrow="Funnel" title="방문에서 공유까지" />
-          <div className="grid gap-3 md:grid-cols-4">
-            <FunnelStepCard
-              caption="페이지를 방문한 고유 세션"
-              title="방문"
-              tone="sky"
-              value={summary.visitors.current}
-            />
-            <FunnelStepCard
-              caption="미리보기까지 완료한 고유 세션"
-              title="생성 완료 이용자"
-              tone="mint"
-              value={summary.funnel.completedSessions}
-            />
-            <FunnelStepCard
-              caption="생성 완료 후 저장을 시도한 고유 세션"
-              title="저장 시도 이용자"
-              tone="gold"
-              value={summary.funnel.savedCompletedSessions}
-            />
-            <FunnelStepCard
-              caption="생성 완료 후 공유를 시도한 고유 세션"
-              title="공유 이용자"
-              tone="coral"
-              value={summary.funnel.sharedCompletedSessions}
-            />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <RateCard
-              caption="방문자 대비 생성 완료 이용자"
-              progress={summary.funnel.visitToCreateRate}
-              title="방문 → 생성"
-              value={formatRate(summary.funnel.visitToCreateRate)}
-            />
-            <RateCard
-              caption="생성 완료 세션 중 저장"
-              progress={summary.funnel.createToSaveRate}
-              title="생성 → 저장"
-              value={formatRate(summary.funnel.createToSaveRate)}
-            />
-            <RateCard
-              caption="생성 완료 세션 중 공유"
-              progress={summary.funnel.createToShareRate}
-              title="생성 → 공유"
-              value={formatRate(summary.funnel.createToShareRate)}
-            />
-            <RateCard
-              caption="완성된 플리 1개당 평균"
-              progress={(summary.funnel.averageSongsPerBoard / 24) * 100}
-              title="평균 선택 곡 수"
-              value={formatAverage(summary.funnel.averageSongsPerBoard)}
-            />
-          </div>
+          <FunnelVisualization
+            averageSongsPerBoard={summary.funnel.averageSongsPerBoard}
+            completedSessions={summary.funnel.completedSessions}
+            savedCompletedSessions={summary.funnel.savedCompletedSessions}
+            sharedCompletedSessions={summary.funnel.sharedCompletedSessions}
+            visitors={summary.visitors.current}
+          />
         </div>
 
         <div className="space-y-3">
