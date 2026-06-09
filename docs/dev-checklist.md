@@ -35,10 +35,13 @@
 
 - [x] iTunes API 기본 provider 연결
 - [x] Spotify provider fallback 코드 유지
+- [x] 내부 음악 provider 타입 `spotify` / `itunes` 정식화
 - [x] provider-neutral `/api/music/*` route 적용
 - [x] 기존 `/api/spotify/*` alias 유지
 - [x] iTunes 검색 메모리 캐시 적용
 - [x] iTunes 검색 Neon 캐시 적용
+- [x] provider별 검색 캐시 분리
+- [x] 기존 iTunes 곡 provider 보정 migration 적용
 - [x] 검색 실패 시 stale cache fallback 적용
 - [x] iTunes 검색 캐시 워밍 script 추가
 - [x] 곡명 / 아티스트명 / 앨범아트 조회 확인
@@ -81,6 +84,8 @@
 - [x] 국가 / 대륙 집계 구조
 - [x] 방문 대비 생성 완료율 고유 세션 기준 표시
 - [x] 생성 완료 대비 저장률 / 공유율
+- [x] 방문 → 생성 완료 단계형 퍼널 시각화
+- [x] 생성 후 저장 / 공유 분기 행동 시각화
 - [x] 평균 선택 곡 수
 - [x] 빈 / 채워진 기온 구간 통계
 - [x] 완성 기준 인기 아티스트 / 곡

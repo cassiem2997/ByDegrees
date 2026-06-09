@@ -33,7 +33,7 @@
 - `/admin/login`
   - 운영자 패스코드 진입
 - `/admin`
-  - 기간별 방문 / 생성 / 저장 / 공유 / 인기 데이터 / 국가 / 대륙 지표 / 점검 알림 운영 확인
+  - 기간별 방문 / 생성 / 저장 / 공유 퍼널 / 인기 데이터 / 국가 / 대륙 지표 / 점검 알림 운영 확인
 
 ## 3. MVP User Flow
 
@@ -115,6 +115,7 @@
 - 생성 완료 이용자 기준: `create_board` 이벤트가 있는 고유 `session_id`
 - 생성 완료 보드 기준: `create_board` 이벤트 건수
 - 방문 -> 생성 전환율은 생성 완료 이용자 기준으로 계산하고, 보드 수는 별도 총량 지표로 봅니다.
+- 관리자 화면에서는 방문 -> 생성 완료를 메인 퍼널로 보여주고, 저장 / 공유는 생성 완료 이후의 분기 행동으로 시각화합니다.
 
 ### Save
 
@@ -142,6 +143,8 @@
 - 음악 검색 route: `/api/music/search`, `/api/music/artists`
 - 기존 `/api/spotify/search`, `/api/spotify/artists`는 alias로 유지
 - 음악 검색 안정화: server memory cache + Neon search cache + stale fallback
+- 내부 음악 provider 타입: `spotify` / `itunes`
+- 저장 보드와 음악 검색 캐시는 실제 provider 값을 유지하며, provider별 캐시를 분리
 - DB: Neon Postgres
 - Hosting: Vercel
 - Admin 보호: `ADMIN_PASSCODE` + cookie gate

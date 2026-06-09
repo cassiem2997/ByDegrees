@@ -26,9 +26,9 @@
 - 링크 복사는 서비스 홈 URL 기준으로 고정
 - 중복곡 추가 확인, 빈 기온 구간 안내 토스트
 - 생성 완료, 검색, 저장, 공유 이벤트 로깅
-- 기간 네비게이션과 퍼널 지표가 있는 관리자 통계 대시보드
+- 기간 네비게이션과 단계형 퍼널 시각화가 있는 관리자 통계 대시보드
 - 국가 / 대륙별 방문자와 생성 완료 이용자 donut chart
-- iTunes 검색 결과 메모리 캐시 + Neon 캐시
+- provider별 iTunes 검색 결과 메모리 캐시 + Neon 캐시
 - 검색 실패 시 stale cache fallback
 - 반복 검색 오류 감지 시 랜딩 점검 공지 ON + Discord webhook 알림
 - 점검 완료 알림 신청, Gmail BCC prefill, 3일 후 알림 신청자 자동 삭제
@@ -97,9 +97,11 @@ npm run migrate:status
 npm run migrate
 ```
 
-`migrations/003_music_search_cache.sql`은 음악 검색 결과를 Neon에 캐싱하기 위한 테이블입니다. 검색 결과는 24시간 동안 fresh cache로 사용하고, 외부 API 검색 실패 시 14일 이내 stale cache까지 fallback으로 사용합니다.
+`migrations/003_music_search_cache.sql`은 음악 검색 결과를 Neon에 캐싱하기 위한 테이블입니다. 검색 결과는 24시간 동안 fresh cache로 사용하고, 외부 API 검색 실패 시 14일 이내 stale cache까지 fallback으로 사용합니다. 캐시는 provider별로 분리해 iTunes와 Spotify 검색 결과가 섞이지 않도록 관리합니다.
 
 `migrations/007_search_error_incidents.sql`은 반복 검색 오류 감지를 위한 incident 카운터입니다.
+
+`migrations/008_normalize_itunes_provider.sql`은 `itunes:*` track id를 가진 기존 곡의 provider를 `itunes`로 보정하고, 이전 구조에서 잘못 저장될 수 있었던 iTunes 검색 캐시를 비웁니다.
 
 ## Sharing Notes
 
@@ -122,6 +124,7 @@ npm run migrate
 - 생성 완료 대비 이미지 길게 누른 비율
 - 생성 완료 대비 공유율
 - 평균 선택 곡 수
+- 방문 → 생성 완료는 메인 퍼널로, 저장 / 공유는 생성 후 분기 행동으로 시각화
 - 가장 많이 비는 / 채워지는 기온 구간
 - 완성 기준 인기 아티스트 TOP 10 / 인기 곡
 - 국가 / 대륙별 방문 지표
@@ -136,6 +139,7 @@ npm run migrate
 
 - 음악 검색은 `/api/music/search`, `/api/music/artists`를 사용합니다. 기존 `/api/spotify/*` route는 alias로 유지됩니다.
 - iTunes 검색은 먼저 서버 메모리 캐시를 확인하고, 없으면 Neon 검색 캐시를 확인한 뒤 iTunes Search API를 호출합니다.
+- 내부 음악 provider 타입은 `spotify` / `itunes`로 정식화되어, 저장 보드와 검색 캐시가 실제 provider 값을 유지합니다.
 - 외부 API 검색 실패 시 stale cache를 fallback으로 사용합니다. 캐시가 없고 같은 오류가 짧은 시간 안에 반복될 때만 랜딩 점검 공지를 켭니다.
 - `DISCORD_ALERT_WEBHOOK_URL`이 설정되어 있으면 반복 검색 오류로 점검 공지가 켜질 때 Discord 알림을 보냅니다.
 - 장애 대응용 점검 공지는 DB 상태로 관리되며 `/admin`에서 수동으로 내릴 수 있습니다.
