@@ -7,6 +7,21 @@ import { PageViewTracker } from "@/components/page-view-tracker";
 import { getMaintenanceNoticeState } from "@/lib/db/maintenance-notice";
 import { getCopy, Locale } from "@/lib/i18n/copy";
 
+const heroPhoneScreens = [
+  {
+    src: "/images/hero-phone/my-playlist-angle.png",
+    className: "hero-phone-mockup hero-phone-mockup-1",
+    width: 1857,
+    height: 3096
+  },
+  {
+    src: "/images/landing-mockup.png",
+    className: "hero-phone-mockup hero-phone-mockup-2",
+    width: 1857,
+    height: 3096
+  }
+];
+
 function LanguageToggle({ locale }: { locale: Locale }) {
   const linkClass =
     "rounded-full px-2.5 py-1 transition focus:outline-none focus:ring-2 focus:ring-[#1c1b1b]/15";
@@ -40,6 +55,28 @@ function renderLines(text: string) {
   ));
 }
 
+function HeroPhoneShowcase({ alt }: { alt: string }) {
+  return (
+    <div aria-label={alt} className="hero-phone-scene hero-phone-scene--carousel mb-6 sm:mb-7" role="img">
+      <div className="hero-phone-glow" aria-hidden="true" />
+      <div className="hero-phone-rotator" aria-hidden="true">
+        {heroPhoneScreens.map((screen, index) => (
+          <Image
+            alt=""
+            className={screen.className}
+            height={screen.height}
+            key={screen.src}
+            priority={index === 0}
+            sizes="(max-width: 430px) 286px, 320px"
+            src={screen.src}
+            width={screen.width}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export async function HomePageContent({ locale }: { locale: Locale }) {
   const maintenanceNotice = await getMaintenanceNoticeState();
   const showMaintenanceNotice = maintenanceNotice.active;
@@ -67,14 +104,7 @@ export async function HomePageContent({ locale }: { locale: Locale }) {
         ].join(" ")}
       >
         <section className="flex flex-1 flex-col items-center justify-center pb-16 pt-24 text-center">
-          <Image
-            alt={t.landing.heroAlt}
-            className="mb-6 h-auto w-full max-w-[270px] sm:mb-7 sm:max-w-[320px]"
-            height={3096}
-            priority
-            src="/images/landing-mockup.png"
-            width={1857}
-          />
+          <HeroPhoneShowcase alt={t.landing.heroAlt} />
 
           <Link
             className="flex h-16 w-full items-center justify-center gap-3 rounded-full bg-[#1a1a1a] px-6 text-[21px] font-extrabold tracking-[-0.05em] text-white shadow-[0_24px_42px_rgba(0,0,0,0.16)] transition active:scale-95"

@@ -37,3 +37,180 @@ input {
 ::selection {
   background: rgba(255, 122, 109, 0.22);
 }
+
+.hero-phone-scene {
+  position: relative;
+  width: min(100%, 320px);
+  height: 533px;
+  isolation: isolate;
+  perspective: 1400px;
+}
+
+.hero-phone-glow {
+  position: absolute;
+  inset: auto 10% 2% 8%;
+  z-index: 0;
+  height: 16%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 36% 50%, rgba(255, 122, 109, 0.24), transparent 48%),
+    radial-gradient(circle at 68% 45%, rgba(144, 197, 119, 0.18), transparent 48%);
+  filter: blur(20px);
+  opacity: 0.8;
+  transform: rotateX(72deg);
+}
+
+.hero-phone-rotator {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform-style: preserve-3d;
+}
+
+.hero-phone-mockup {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 28px 36px rgba(28, 27, 27, 0.16));
+  transform-origin: 50% 52%;
+  backface-visibility: hidden;
+  will-change: opacity, transform, filter;
+}
+
+.hero-phone-scene--carousel .hero-phone-mockup-1 {
+  animation: hero-phone-carousel-a 5.8s infinite ease-in-out;
+}
+
+.hero-phone-scene--carousel .hero-phone-mockup-2 {
+  animation: hero-phone-carousel-b 5.8s infinite ease-in-out;
+}
+
+.hero-phone-scene--spin .hero-phone-mockup-1 {
+  animation: hero-phone-mockup-a 5.4s infinite cubic-bezier(0.82, 0, 0.18, 1);
+}
+
+.hero-phone-scene--spin .hero-phone-mockup-2 {
+  animation: hero-phone-mockup-b 5.4s infinite cubic-bezier(0.82, 0, 0.18, 1);
+}
+
+@keyframes hero-phone-carousel-a {
+  0%,
+  38% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotateZ(0deg);
+    filter: drop-shadow(0 28px 36px rgba(28, 27, 27, 0.16));
+  }
+
+  48% {
+    opacity: 0;
+    transform: translate3d(-18px, 10px, 0) scale(0.975) rotateZ(-1.2deg);
+    filter: drop-shadow(0 18px 24px rgba(28, 27, 27, 0.1));
+  }
+
+  88% {
+    opacity: 0;
+    transform: translate3d(18px, 10px, 0) scale(0.975) rotateZ(1.2deg);
+    filter: drop-shadow(0 18px 24px rgba(28, 27, 27, 0.1));
+  }
+
+  98%,
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotateZ(0deg);
+    filter: drop-shadow(0 28px 36px rgba(28, 27, 27, 0.16));
+  }
+}
+
+@keyframes hero-phone-carousel-b {
+  0%,
+  43% {
+    opacity: 0;
+    transform: translate3d(18px, 10px, 0) scale(0.975) rotateZ(1.2deg);
+    filter: drop-shadow(0 18px 24px rgba(28, 27, 27, 0.1));
+  }
+
+  53%,
+  83% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotateZ(0deg);
+    filter: drop-shadow(0 28px 36px rgba(28, 27, 27, 0.16));
+  }
+
+  93%,
+  100% {
+    opacity: 0;
+    transform: translate3d(-18px, 10px, 0) scale(0.975) rotateZ(-1.2deg);
+    filter: drop-shadow(0 18px 24px rgba(28, 27, 27, 0.1));
+  }
+}
+
+@keyframes hero-phone-mockup-a {
+  0% {
+    opacity: 1;
+    transform: rotateY(0deg) scaleX(1) translateY(0);
+  }
+
+  39% {
+    opacity: 1;
+    transform: rotateY(0deg) scaleX(1) translateY(0);
+  }
+
+  44% {
+    opacity: 0;
+    transform: rotateY(84deg) scaleX(0.13) translateY(-3px);
+  }
+
+  86% {
+    opacity: 0;
+    transform: rotateY(-84deg) scaleX(0.13) translateY(-3px);
+  }
+
+  91%,
+  100% {
+    opacity: 1;
+    transform: rotateY(0deg) scaleX(1) translateY(0);
+  }
+}
+
+@keyframes hero-phone-mockup-b {
+  0%,
+  42% {
+    opacity: 0;
+    transform: rotateY(-84deg) scaleX(0.13) translateY(-3px);
+  }
+
+  47% {
+    opacity: 1;
+    transform: rotateY(0deg) scaleX(1) translateY(0);
+  }
+
+  84% {
+    opacity: 1;
+    transform: rotateY(0deg) scaleX(1) translateY(0);
+  }
+
+  89%,
+  100% {
+    opacity: 0;
+    transform: rotateY(84deg) scaleX(0.13) translateY(-3px);
+  }
+}
+
+@media (max-width: 430px) {
+  .hero-phone-scene {
+    width: min(100%, 286px);
+    height: 477px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-phone-mockup {
+    animation: none;
+  }
+
+  .hero-phone-mockup-2 {
+    display: none;
+  }
+}
