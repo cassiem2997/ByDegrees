@@ -41,7 +41,7 @@ export function AdminChart({
                   className={cn(
                     "rounded-t-2xl bg-gradient-to-t",
                     metric === "pageViews" && "from-sky to-[#9bd8ff]",
-                    metric === "creates" && "from-lilac to-sky",
+                    metric === "creates" && "from-mint to-sky",
                     metric === "saves" && "from-peach to-gold",
                     metric === "shares" && "from-coral to-peach"
                   )}

@@ -3,8 +3,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Flame,
-  MousePointerClick,
-  Sparkles,
   Trophy
 } from "lucide-react";
 
@@ -557,16 +555,6 @@ export default async function AdminPage({
   return (
     <SiteShell logoHref="https://by-degrees.vercel.app" logoNewTab>
       <div className="space-y-6">
-        <div className="overflow-hidden rounded-[34px] border border-white/75 bg-white/78 shadow-[0_24px_70px_rgba(27,30,70,0.08)] backdrop-blur">
-          <div className="bg-gradient-to-r from-coral/16 via-gold/14 to-sky/18 px-6 py-7">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.22em] text-coral">Admin Dashboard</p>
-            <h1 className="text-3xl font-semibold text-ink">By Degrees 운영 통계</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-ink/56">
-              기간을 넘겨보며 방문자 수, 이미지 길게 누른 횟수, 공유 수를 확인할 수 있습니다.
-            </p>
-          </div>
-        </div>
-
         <PeriodNavigation period={period} />
 
         <div className="rounded-[30px] border border-white/75 bg-white/75 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur md:flex md:items-center md:justify-between md:gap-5">
@@ -639,69 +627,21 @@ export default async function AdminPage({
         </div>
 
         <div className="space-y-3">
-          <SectionHeader eyebrow="Temperature" title="기온 구간 인사이트" />
+          <SectionHeader eyebrow="Trend" title="핵심 추이" />
           <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-coral/12 text-coral">
-                  <MousePointerClick size={20} />
-                </span>
-                <p className="text-sm font-semibold text-ink">가장 많이 비는 기온 구간</p>
-              </div>
-              {summary.temperatureInsights.emptiest ? (
-                <div className="mt-4 rounded-2xl bg-coral/8 px-4 py-4">
-                  <p className="text-2xl font-semibold text-ink">
-                    {summary.temperatureInsights.emptiest.label}
-                  </p>
-                  <p className="mt-1 text-sm text-ink/55">
-                    {summary.temperatureInsights.emptiest.totalBoards}개 중{" "}
-                    {summary.temperatureInsights.emptiest.count}개 플리에서 비어 있었어요.
-                  </p>
-                </div>
-              ) : (
-                <EmptyText>아직 비교할 플레이리스트 데이터가 없습니다.</EmptyText>
-              )}
-            </div>
-
-            <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-mint/16 text-ink">
-                  <Sparkles size={20} />
-                </span>
-                <p className="text-sm font-semibold text-ink">가장 많이 채워지는 기온 구간</p>
-              </div>
-              {summary.temperatureInsights.fullest ? (
-                <div className="mt-4 rounded-2xl bg-mint/12 px-4 py-4">
-                  <p className="text-2xl font-semibold text-ink">
-                    {summary.temperatureInsights.fullest.label}
-                  </p>
-                  <p className="mt-1 text-sm text-ink/55">
-                    {summary.temperatureInsights.fullest.totalBoards}개 플리에서 총{" "}
-                    {summary.temperatureInsights.fullest.count}곡이 배치됐어요.
-                  </p>
-                </div>
-              ) : (
-                <EmptyText>아직 비교할 플레이리스트 데이터가 없습니다.</EmptyText>
-              )}
-            </div>
+            <AdminChart label={period.chartLabel} metric="pageViews" series={summary.dailySeries} />
+            <AdminChart label={period.chartLabel} metric="creates" series={summary.dailySeries} />
           </div>
         </div>
 
         <div className="space-y-3">
-          <SectionHeader eyebrow="Traffic" title="방문 흐름" />
-          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <AdminChart label={period.chartLabel} metric="pageViews" series={summary.dailySeries} />
+          <SectionHeader eyebrow="Acquisition" title="유입과 전환" />
+          <div className="grid gap-4 xl:grid-cols-3">
             <DonutChartCard
               data={summary.visitorCountries}
               emptyText="아직 집계된 데이터가 없습니다."
               title="국가별 방문자 수"
             />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <SectionHeader eyebrow="Conversion" title="국가와 언어 전환율" />
-          <div className="grid gap-4 xl:grid-cols-3">
             <ConversionTableCard
               caption="방문 세션 대비 생성 완료 이용자 기준"
               data={summary.countryConversions}
@@ -719,39 +659,6 @@ export default async function AdminPage({
               data={summary.geoRedirectConversions}
               emptyText="아직 geo redirect 전환 데이터가 없습니다."
               title="Geo redirect 성과"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <SectionHeader eyebrow="Completion Location" title="완성 이용자 지역" />
-          <div className="grid gap-4 lg:grid-cols-2">
-            <DonutChartCard
-              caption="플레이리스트 생성 완료 세션 기준"
-              data={summary.completedCountries}
-              emptyText="아직 완성 이용자 지역 데이터가 없습니다."
-              title="국가별 이용자 수"
-            />
-
-            <DonutChartCard
-              caption="플레이리스트 생성 완료 세션 기준"
-              data={summary.completedContinents}
-              emptyText="아직 완성 이용자 지역 데이터가 없습니다."
-              maxSlices={6}
-              title="대륙별 이용자 수"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <SectionHeader eyebrow="Creation" title="생성 추이와 지역" />
-          <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-            <AdminChart label={period.chartLabel} metric="creates" series={summary.dailySeries} />
-            <DonutChartCard
-              data={summary.visitorContinents}
-              emptyText="아직 방문자 데이터가 없습니다."
-              maxSlices={6}
-              title="대륙별 방문자 수"
             />
           </div>
         </div>

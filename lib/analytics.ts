@@ -513,20 +513,28 @@ export async function getAdminSummary(
           select
             (created_at at time zone 'Asia/Seoul')::date as day,
             count(distinct case when event_type = 'page_view' then session_id end)::int as pageviews,
-            coalesce(sum(case when event_type = 'create_board' then 1 else 0 end), 0)::int as creates,
             coalesce(sum(case when event_type = 'save_image_long_press' then 1 else 0 end), 0)::int as saves,
             coalesce(sum(case when event_type = 'share' then 1 else 0 end), 0)::int as shares
           from events
+          group by (created_at at time zone 'Asia/Seoul')::date
+        ),
+        board_counts as (
+          select
+            (created_at at time zone 'Asia/Seoul')::date as day,
+            count(*)::int as creates
+          from boards
+          where is_internal = false
           group by (created_at at time zone 'Asia/Seoul')::date
         )
         select
           to_char(days.day, 'YYYY-MM-DD') as date,
           coalesce(event_counts.pageviews, 0)::int as pageviews,
-          coalesce(event_counts.creates, 0)::int as creates,
+          coalesce(board_counts.creates, 0)::int as creates,
           coalesce(event_counts.saves, 0)::int as saves,
           coalesce(event_counts.shares, 0)::int as shares
         from days
         left join event_counts on event_counts.day = days.day::date
+        left join board_counts on board_counts.day = days.day::date
         order by days.day asc
       `,
       [rangeStart, rangeEnd]
