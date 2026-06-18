@@ -7,6 +7,7 @@ import { Download, Link2 } from "lucide-react";
 
 import { BoardPreview } from "@/components/board-preview";
 import { Button } from "@/components/ui/button";
+import { dataUrlToFile, shareImageFile } from "@/lib/image-file";
 import { DEFAULT_LOCALE, getCopy, Locale } from "@/lib/i18n/copy";
 import { generateBoardPreviewDataUrl } from "@/lib/preview-canvas";
 import { getOrCreateSessionId } from "@/lib/session";
@@ -66,6 +67,15 @@ function buildXIntentUrl(text: string, url?: string) {
   }
 
   return `https://x.com/intent/tweet?${params.toString()}`;
+}
+
+function buildTrackedShareUrl(source: string) {
+  const url = new URL(getAppShareUrl());
+  url.searchParams.set("utm_source", source);
+  url.searchParams.set("utm_medium", "social");
+  url.searchParams.set("utm_campaign", "playlist_share");
+
+  return url.toString();
 }
 
 async function logClientEvent(eventType: string, metadata: Record<string, unknown>) {
@@ -277,6 +287,7 @@ export function LocalPreviewClient({
             locale={locale}
             onLinkCopied={() => setShowLinkCopiedToast(true)}
             onSaveHint={() => setShowSaveHint(true)}
+            previewImageUrl={previewImageUrl}
             previewImageReady={Boolean(previewImageUrl)}
             showSaveHint={showSaveHint}
           />
@@ -295,6 +306,7 @@ function LocalPreviewActions({
   onLinkCopied,
   onSaveHint,
   previewImageReady,
+  previewImageUrl,
   showSaveHint
 }: {
   artistName: string;
@@ -305,12 +317,15 @@ function LocalPreviewActions({
   onLinkCopied: () => void;
   onSaveHint: () => void;
   previewImageReady: boolean;
+  previewImageUrl: string;
   showSaveHint: boolean;
 }) {
   const [saveError, setSaveError] = useState("");
   const t = getCopy(locale);
   const createHref = locale === "en" ? "/en/create" : "/create";
   const shareUrl = getAppShareUrl();
+  const xShareText = buildXShareText(boardTitle, artistName, locale);
+  const xShareUrl = buildTrackedShareUrl("x");
 
   async function handleDownload() {
     if (!previewImageReady) {
@@ -341,15 +356,33 @@ function LocalPreviewActions({
   }
 
   async function handleXShare() {
-    window.open(
-      buildXIntentUrl(buildXShareText(boardTitle, artistName, locale)),
-      "_blank",
-      "noopener,noreferrer"
-    );
+    let channel = "x_intent";
+
+    if (previewImageUrl) {
+      try {
+        const file = await dataUrlToFile(previewImageUrl, "by-degrees-playlist.png");
+        const shared = await shareImageFile(file, {
+          text: xShareText,
+          title: boardTitle,
+          url: xShareUrl
+        });
+
+        if (shared) {
+          channel = "native_share";
+        } else {
+          window.open(buildXIntentUrl(xShareText, xShareUrl), "_blank", "noopener,noreferrer");
+        }
+      } catch {
+        window.open(buildXIntentUrl(xShareText, xShareUrl), "_blank", "noopener,noreferrer");
+      }
+    } else {
+      window.open(buildXIntentUrl(xShareText, xShareUrl), "_blank", "noopener,noreferrer");
+    }
+
     await logClientEvent("share", {
       board_id: boardId,
       board_slug: boardSlug,
-      channel: "x_intent"
+      channel
     });
   }
 

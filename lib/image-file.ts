@@ -63,10 +63,30 @@ export async function captureElementAsPngFile(element: HTMLElement, filename: st
   };
 }
 
-export async function shareImageFile(file: File, title: string) {
+export async function dataUrlToFile(dataUrl: string, filename: string) {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+
+  return new File([blob], filename, { type: blob.type || "image/png" });
+}
+
+export async function shareImageFile(
+  file: File,
+  {
+    text,
+    title,
+    url
+  }: {
+    text?: string;
+    title: string;
+    url?: string;
+  }
+) {
   const shareData = {
     files: [file],
-    title
+    text,
+    title,
+    url
   };
 
   if (!navigator.canShare?.(shareData)) {
