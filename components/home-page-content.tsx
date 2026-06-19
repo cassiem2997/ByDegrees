@@ -9,16 +9,16 @@ import { getCopy, Locale } from "@/lib/i18n/copy";
 
 const heroPhoneScreens = [
   {
-    src: "/images/hero-phone/my-playlist-angle.png",
+    src: "/images/hero-phone/my-playlist-angle.webp",
     className: "hero-phone-mockup hero-phone-mockup-1",
-    width: 1857,
-    height: 3096
+    width: 720,
+    height: 1200
   },
   {
-    src: "/images/landing-mockup.png",
+    src: "/images/hero-phone/red-velvet-angle.webp",
     className: "hero-phone-mockup hero-phone-mockup-2",
-    width: 1857,
-    height: 3096
+    width: 720,
+    height: 1200
   }
 ];
 
