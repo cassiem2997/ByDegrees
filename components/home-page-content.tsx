@@ -60,13 +60,13 @@ function HeroPhoneShowcase({ alt }: { alt: string }) {
     <div aria-label={alt} className="hero-phone-scene hero-phone-scene--carousel mb-6 sm:mb-7" role="img">
       <div className="hero-phone-glow" aria-hidden="true" />
       <div className="hero-phone-rotator" aria-hidden="true">
-        {heroPhoneScreens.map((screen, index) => (
+        {heroPhoneScreens.map((screen) => (
           <Image
             alt=""
             className={screen.className}
             height={screen.height}
             key={screen.src}
-            priority={index === 0}
+            priority
             sizes="(max-width: 430px) 286px, 320px"
             src={screen.src}
             width={screen.width}

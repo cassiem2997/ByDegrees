@@ -80,11 +80,11 @@ input {
 }
 
 .hero-phone-scene--carousel .hero-phone-mockup-1 {
-  animation: hero-phone-carousel-a 5.8s infinite ease-in-out;
+  animation: hero-phone-carousel-a 7.4s infinite ease-in-out;
 }
 
 .hero-phone-scene--carousel .hero-phone-mockup-2 {
-  animation: hero-phone-carousel-b 5.8s infinite ease-in-out;
+  animation: hero-phone-carousel-b 7.4s infinite ease-in-out;
 }
 
 .hero-phone-scene--spin .hero-phone-mockup-1 {
@@ -210,7 +210,13 @@ input {
     animation: none;
   }
 
-  .hero-phone-mockup-2 {
+  .hero-phone-mockup-1 {
     display: none;
+  }
+
+  .hero-phone-mockup-2 {
+    display: block;
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotateZ(0deg);
   }
 }
