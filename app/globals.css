@@ -204,19 +204,3 @@ input {
     height: 477px;
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-phone-mockup {
-    animation: none;
-  }
-
-  .hero-phone-mockup-1 {
-    display: none;
-  }
-
-  .hero-phone-mockup-2 {
-    display: block;
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1) rotateZ(0deg);
-  }
-}
