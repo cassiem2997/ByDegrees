@@ -21,6 +21,16 @@ function rate(numerator: number, denominator: number) {
   return Number(((numerator / denominator) * 100).toFixed(1));
 }
 
+function getAdminSummaryErrorMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+
+  if (/quota|exceeded|402/i.test(message)) {
+    return "DB compute quota 초과로 운영 통계를 불러오지 못했습니다.";
+  }
+
+  return "운영 통계를 불러오지 못했습니다.";
+}
+
 export async function logEvent(
   eventType: EventType,
   sessionId: string,
@@ -622,6 +632,9 @@ export async function getAdminSummary(
     };
   } catch (error) {
     console.error("Failed to load admin analytics summary", error);
-    return fallback;
+    return {
+      ...fallback,
+      loadError: getAdminSummaryErrorMessage(error)
+    };
   }
 }

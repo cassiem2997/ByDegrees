@@ -557,6 +557,16 @@ export default async function AdminPage({
       <div className="space-y-6">
         <PeriodNavigation period={period} />
 
+        {summary.loadError ? (
+          <div className="rounded-[30px] border border-coral/25 bg-coral/10 p-5 text-ink shadow-[0_18px_48px_rgba(27,30,70,0.06)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral">Analytics Unavailable</p>
+            <h2 className="mt-1 text-xl font-semibold text-ink">{summary.loadError}</h2>
+            <p className="mt-2 text-sm leading-6 text-ink/56">
+              현재 표시되는 0은 실제 데이터가 아니라 fallback 값입니다. Neon/Vercel 사용량 한도를 확인한 뒤 다시 열어주세요.
+            </p>
+          </div>
+        ) : null}
+
         <div className="rounded-[30px] border border-white/75 bg-white/75 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur md:flex md:items-center md:justify-between md:gap-5">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral">Maintenance Notice</p>

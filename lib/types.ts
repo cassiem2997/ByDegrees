@@ -72,6 +72,7 @@ export type BoardSummary = {
 };
 
 export type AdminSummary = {
+  loadError?: string;
   visitors: {
     current: number;
     cumulative: number;
