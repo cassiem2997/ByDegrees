@@ -6,6 +6,7 @@ import { Download } from "lucide-react";
 import { ShareChannelButtons } from "@/components/share-channel-buttons";
 import { Button } from "@/components/ui/button";
 import { captureElementAsPngDataUrl } from "@/lib/image-file";
+import { shareToKakao } from "@/lib/kakao-share";
 import { getOrCreateSessionId } from "@/lib/session";
 import { absoluteUrl } from "@/lib/utils";
 
@@ -137,6 +138,31 @@ export function ShareActions({
     });
   }
 
+  async function handleKakaoShare() {
+    const shared = await shareToKakao({
+      title: boardTitle,
+      description: "음악으로 기록하는 여러분의 계절도 공유해주세요 🎧",
+      url: shareUrl
+    });
+    let channel = "kakao_link";
+
+    if (!shared) {
+      if (!navigator.clipboard) return;
+      await navigator.clipboard.writeText(shareUrl);
+      setLinkCopied(true);
+      window.setTimeout(() => {
+        setLinkCopied(false);
+      }, 1600);
+      channel = "kakao_fallback_copy";
+    }
+
+    await logClientEvent("share", {
+      board_id: boardId,
+      board_slug: boardSlug,
+      channel
+    });
+  }
+
   async function handleCopyLink() {
     if (!navigator.clipboard) return;
     await navigator.clipboard.writeText(shareUrl);
@@ -182,6 +208,7 @@ export function ShareActions({
         </div>
       ) : null}
       <ShareChannelButtons
+        onKakaoShare={handleKakaoShare}
         onCopyLink={handleCopyLink}
         onXShare={handleTwitterShare}
       />

@@ -39,7 +39,8 @@
 - 링크 공유: 별도 복사 버튼
 - 링크 공유 URL: 서비스 홈 URL
 - X intent에는 URL을 넣지 않음
-- Instagram / Kakaotalk 직접 공유는 현재 MVP 제외
+- Kakaotalk: 링크만 공유
+- Instagram / Kakaotalk 이미지 직접 공유는 현재 MVP 제외
 
 ## 7. Analytics
 

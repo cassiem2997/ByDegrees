@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link2 } from "lucide-react";
+import { Link2, MessageCircle } from "lucide-react";
 
 type ShareChannelButtonsProps = {
+  onKakaoShare?: () => void | Promise<void>;
   onCopyLink: () => void | Promise<void>;
   onXShare: () => void | Promise<void>;
 };
 
 export function ShareChannelButtons({
+  onKakaoShare,
   onCopyLink,
   onXShare
 }: ShareChannelButtonsProps) {
@@ -46,6 +48,17 @@ export function ShareChannelButtons({
           </span>
           X 공유
         </button>
+        {onKakaoShare ? (
+          <button
+            aria-label="카톡 공유"
+            className="flex h-11 min-w-[96px] items-center justify-center gap-2 rounded-full bg-[#fee500] px-4 text-[13px] font-bold tracking-[-0.03em] text-[#1a1a1a] shadow-[0_10px_22px_rgba(0,0,0,0.10)] transition active:scale-95"
+            onClick={onKakaoShare}
+            type="button"
+          >
+            <MessageCircle className="h-4 w-4" />
+            카톡
+          </button>
+        ) : null}
         <button
           aria-label="링크 복사"
           className="flex h-11 min-w-[112px] items-center justify-center gap-2 rounded-full bg-[#1a1a1a] px-4 text-[13px] font-bold tracking-[-0.03em] text-white shadow-[0_10px_22px_rgba(0,0,0,0.10)] transition active:scale-95"

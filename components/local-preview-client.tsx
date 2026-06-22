@@ -3,12 +3,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { Download, Link2 } from "lucide-react";
+import { Download, Link2, MessageCircle } from "lucide-react";
 
 import { BoardPreview } from "@/components/board-preview";
 import { Button } from "@/components/ui/button";
 import { dataUrlToFile, shareImageFile } from "@/lib/image-file";
 import { DEFAULT_LOCALE, getCopy, Locale } from "@/lib/i18n/copy";
+import { shareToKakao } from "@/lib/kakao-share";
 import { generateBoardPreviewDataUrl } from "@/lib/preview-canvas";
 import { getOrCreateSessionId } from "@/lib/session";
 import { BoardSummary } from "@/lib/types";
@@ -386,6 +387,30 @@ function LocalPreviewActions({
     });
   }
 
+  async function handleKakaoShare() {
+    const kakaoShareUrl = buildTrackedShareUrl("kakao");
+    const shared = await shareToKakao({
+      title: boardTitle,
+      description: t.share.xShareText,
+      url: kakaoShareUrl,
+      buttonTitle: locale === "en" ? "Open By Degrees" : "기온별플리 열기"
+    });
+    let channel = "kakao_link";
+
+    if (!shared) {
+      if (!navigator.clipboard) return;
+      await navigator.clipboard.writeText(kakaoShareUrl);
+      onLinkCopied();
+      channel = "kakao_fallback_copy";
+    }
+
+    await logClientEvent("share", {
+      board_id: boardId,
+      board_slug: boardSlug,
+      channel
+    });
+  }
+
   function handleCreateNew() {
     window.sessionStorage.removeItem(PREVIEW_STORAGE_KEY);
     window.sessionStorage.removeItem(CREATE_DRAFT_STORAGE_KEY);
@@ -395,7 +420,7 @@ function LocalPreviewActions({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-2 gap-2.5">
         <Button
           className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
           onClick={handleDownload}
@@ -413,6 +438,14 @@ function LocalPreviewActions({
             X
           </span>
           {t.share.xShare}
+        </Button>
+        <Button
+          className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
+          onClick={handleKakaoShare}
+          type="button"
+        >
+          <MessageCircle className="h-4 w-4" />
+          {t.share.kakaoShare}
         </Button>
         <Button
           className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"

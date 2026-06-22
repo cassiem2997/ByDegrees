@@ -4,14 +4,15 @@ type KakaoShareOptions = {
   title: string;
   description: string;
   url: string;
-  imageUrl: string;
+  buttonTitle?: string;
 };
 
 type KakaoSdk = {
   init: (javascriptKey: string) => void;
   isInitialized: () => boolean;
   Share: {
-    sendDefault: (options: {
+    sendDefault: (options:
+    | {
       objectType: "feed";
       content: {
         title: string;
@@ -29,6 +30,15 @@ type KakaoSdk = {
           webUrl: string;
         };
       }>;
+    }
+    | {
+      objectType: "text";
+      text: string;
+      link: {
+        mobileWebUrl: string;
+        webUrl: string;
+      };
+      buttonTitle?: string;
     }) => void;
   };
 };
@@ -69,7 +79,7 @@ export async function shareToKakao({
   title,
   description,
   url,
-  imageUrl
+  buttonTitle = "기온별플리 열기"
 }: KakaoShareOptions) {
   const javascriptKey = process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY;
 
@@ -89,25 +99,13 @@ export async function shareToKakao({
     }
 
     window.Kakao.Share.sendDefault({
-      objectType: "feed",
-      content: {
-        title,
-        description,
-        imageUrl,
-        link: {
-          mobileWebUrl: url,
-          webUrl: url
-        }
+      objectType: "text",
+      text: [title, description].filter(Boolean).join("\n"),
+      link: {
+        mobileWebUrl: url,
+        webUrl: url
       },
-      buttons: [
-        {
-          title: "기온별플리 보기",
-          link: {
-            mobileWebUrl: url,
-            webUrl: url
-          }
-        }
-      ]
+      buttonTitle
     });
 
     return true;
