@@ -118,6 +118,7 @@ export const copy = {
     localPreview: {
       noDataTitle: "미리보기 데이터가 없어요.",
       remake: "다시 만들기",
+      backToCreate: "편집으로 돌아가기",
       preparing: "미리보기 이미지를 준비 중이에요.",
       previewAlt: "{title} 미리보기 이미지",
       newBoard: "새로 만들기",
@@ -248,6 +249,7 @@ export const copy = {
     localPreview: {
       noDataTitle: "No preview data found.",
       remake: "Make it again",
+      backToCreate: "Back to editing",
       preparing: "Preparing your preview image.",
       previewAlt: "{title} preview image",
       newBoard: "Create another playlist",

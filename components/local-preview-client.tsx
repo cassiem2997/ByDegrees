@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { Download, Link2, MessageCircle } from "lucide-react";
+import { ArrowLeft, Download, Link2, MessageCircle } from "lucide-react";
 
 import { BoardPreview } from "@/components/board-preview";
 import { Button } from "@/components/ui/button";
@@ -196,6 +196,11 @@ export function LocalPreviewClient({
     }, 650);
   }
 
+  function handleBackToCreate() {
+    window.sessionStorage.setItem(RESTORE_CREATE_STORAGE_KEY, "1");
+    window.location.assign(createHref);
+  }
+
   if (!loaded) {
     return <div className="min-h-screen bg-[#fcf8f7]" />;
   }
@@ -219,15 +224,24 @@ export function LocalPreviewClient({
   return (
     <main className="min-h-screen bg-[#fcf8f7] text-[#1c1b1b]">
       <div className="mx-auto min-h-screen w-full max-w-[450px] pb-24 pt-6">
-        <header className="mb-7 flex items-center justify-center px-6">
+        <header className="mb-7 grid grid-cols-[40px_1fr_40px] items-center px-6">
+          <button
+            aria-label={t.localPreview.backToCreate}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-[#77716e] transition active:scale-95"
+            onClick={handleBackToCreate}
+            type="button"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
           <Image
             alt={t.common.appName}
-            className="h-auto w-[124px]"
+            className="mx-auto h-auto w-[124px]"
             height={38}
             priority
             src="/images/gion-logo-transparent.png"
             width={124}
           />
+          <span aria-hidden="true" />
         </header>
 
         {previewImageUrl ? (
@@ -431,6 +445,14 @@ function LocalPreviewActions({
         </Button>
         <Button
           className="h-[52px] gap-1.5 rounded-full bg-[#1a1a1a] px-2 text-[13px] font-bold tracking-[-0.03em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
+          onClick={handleCopyLink}
+          type="button"
+        >
+          <Link2 className="h-4 w-4" />
+          {t.share.linkShare}
+        </Button>
+        <Button
+          className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
           onClick={handleXShare}
           type="button"
         >
@@ -446,14 +468,6 @@ function LocalPreviewActions({
         >
           <MessageCircle className="h-4 w-4" />
           {t.share.kakaoShare}
-        </Button>
-        <Button
-          className="h-[52px] gap-1 rounded-full bg-[#1a1a1a] px-1.5 text-[12px] font-bold tracking-[-0.04em] text-white shadow-[0_14px_24px_rgba(0,0,0,0.13)] hover:translate-y-0 hover:bg-[#1a1a1a]"
-          onClick={handleCopyLink}
-          type="button"
-        >
-          <Link2 className="h-4 w-4" />
-          {t.share.linkShare}
         </Button>
       </div>
       <Button
