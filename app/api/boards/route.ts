@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[create-board]", error);
     return NextResponse.json(
-      { error: "플레이리스트 이미지를 생성하지 못했어요. 다시 시도해주세요." },
+      { error: "플레이리스트를 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
       { status: 500 }
     );
   }

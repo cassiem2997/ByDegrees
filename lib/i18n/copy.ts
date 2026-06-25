@@ -136,7 +136,7 @@ export const copy = {
       spotifyRateLimited: "Spotify 검색이 요청이 몰려 잠시 쉬는 중이에요.\n잠시 후 다시 시도해주세요.",
       musicSearchUnstable: "음악 검색 연결이 잠시 불안정해요. 다시 검색해보세요.",
       boardInvalid: "플레이리스트 데이터를 확인하지 못했어요. 다시 시도해주세요.",
-      boardImageFailed: "플레이리스트 이미지를 생성하지 못했어요. 다시 시도해주세요."
+      boardImageFailed: "플레이리스트를 저장하지 못했어요. 잠시 후 다시 시도해주세요."
     },
     metadata: {
       title: "기온별플리 | By Degrees",
@@ -267,7 +267,7 @@ export const copy = {
       spotifyRateLimited: "Music search is temporarily unavailable due to high traffic.\nPlease try again shortly.",
       musicSearchUnstable: "Music search is temporarily unstable. Please search again.",
       boardInvalid: "We could not verify the playlist data. Please try again.",
-      boardImageFailed: "We could not generate the playlist image. Please try again."
+      boardImageFailed: "We could not save the playlist. Please try again shortly."
     },
     metadata: {
       title: "By Degrees",
