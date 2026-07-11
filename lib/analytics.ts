@@ -16,6 +16,18 @@ function continentName(code: string) {
   return names[code] ?? code;
 }
 
+function shareChannelName(channel: string) {
+  const names: Record<string, string> = {
+    copy_link: "링크 복사",
+    kakao_link: "카카오 공유",
+    native_share: "네이티브 공유",
+    x_intent: "X 공유",
+    unknown: "기타"
+  };
+
+  return names[channel] ?? channel;
+}
+
 function rate(numerator: number, denominator: number) {
   if (denominator <= 0) return 0;
   return Number(((numerator / denominator) * 100).toFixed(1));
@@ -91,6 +103,12 @@ export async function getAdminSummary(
     countryConversions: [],
     languageConversions: [],
     geoRedirectConversions: [],
+    shareChannels: [],
+    eventHealth: {
+      eventsLast24h: 0,
+      lastEventAt: null,
+      lastEventType: null
+    },
     topArtists: [],
     topSongs: [],
     dailySeries: []
@@ -418,6 +436,41 @@ export async function getAdminSummary(
       [rangeStart, rangeEnd]
     )) as Array<{ name: string; visitors: number; creators: number; boards: number; conversionRate: number }>;
 
+    const shareChannels = (await sql(
+      `
+        select
+          coalesce(nullif(metadata->>'channel', ''), 'unknown') as channel,
+          count(case
+            when ($1::timestamptz is null or created_at >= $1::timestamptz)
+              and ($2::timestamptz is null or created_at < $2::timestamptz)
+            then 1
+          end)::int as current,
+          count(*)::int as cumulative,
+          count(distinct case
+            when ($1::timestamptz is null or created_at >= $1::timestamptz)
+              and ($2::timestamptz is null or created_at < $2::timestamptz)
+            then session_id
+          end)::int as sessions
+        from events
+        where event_type = 'share'
+        group by coalesce(nullif(metadata->>'channel', ''), 'unknown')
+        order by current desc, cumulative desc, channel asc
+      `,
+      [rangeStart, rangeEnd]
+    )) as Array<{ channel: string; current: number; cumulative: number; sessions: number }>;
+
+    const [eventHealth] = (await sql(
+      `
+        select
+          count(*) filter (where created_at >= now() - interval '24 hours')::int as events_last_24h,
+          max(created_at)::text as last_event_at,
+          (
+            array_agg(event_type order by created_at desc)
+          )[1] as last_event_type
+        from events
+      `
+    )) as Array<{ events_last_24h: number; last_event_at: string | null; last_event_type: string | null }>;
+
     const topArtists = (await sql(
       `
         select metadata->>'artist' as name, count(*)::int as count
@@ -620,6 +673,18 @@ export async function getAdminSummary(
       countryConversions,
       languageConversions,
       geoRedirectConversions,
+      shareChannels: shareChannels.map((item) => ({
+        channel: item.channel,
+        label: shareChannelName(item.channel),
+        current: item.current,
+        cumulative: item.cumulative,
+        sessions: item.sessions
+      })),
+      eventHealth: {
+        eventsLast24h: eventHealth?.events_last_24h ?? 0,
+        lastEventAt: eventHealth?.last_event_at ?? null,
+        lastEventType: eventHealth?.last_event_type ?? null
+      },
       topArtists,
       topSongs,
       dailySeries: dailySeries.map((entry) => ({

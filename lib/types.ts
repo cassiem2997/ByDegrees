@@ -127,6 +127,18 @@ export type AdminSummary = {
     boards: number;
     conversionRate: number;
   }>;
+  shareChannels: Array<{
+    channel: string;
+    label: string;
+    current: number;
+    cumulative: number;
+    sessions: number;
+  }>;
+  eventHealth: {
+    eventsLast24h: number;
+    lastEventAt: string | null;
+    lastEventType: string | null;
+  };
   topArtists: Array<{ name: string; count: number }>;
   topSongs: Array<{ providerTrackId: string; title: string; artistName: string; count: number }>;
   dailySeries: Array<{ date: string; pageViews: number; creates: number; saves: number; shares: number }>;

@@ -28,6 +28,30 @@ function formatAdminNumber(value: number) {
   return value.toLocaleString("ko-KR");
 }
 
+function formatAdminDateTime(value: string | null) {
+  if (!value) return "-";
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Seoul"
+  }).format(new Date(value));
+}
+
+function formatElapsed(value: string | null) {
+  if (!value) return "수집 이력 없음";
+
+  const elapsedMinutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+
+  if (elapsedMinutes < 1) return "방금 전";
+  if (elapsedMinutes < 60) return `${elapsedMinutes}분 전`;
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return `${elapsedHours}시간 전`;
+
+  return `${Math.floor(elapsedHours / 24)}일 전`;
+}
+
 function MetricCard({
   title,
   label,
@@ -40,16 +64,16 @@ function MetricCard({
   tone: "sky" | "mint" | "gold" | "coral";
 }) {
   const toneClass = {
-    sky: "from-sky/35 to-[#9bd8ff]/10",
-    mint: "from-mint/35 to-sky/10",
-    gold: "from-gold/40 to-peach/10",
-    coral: "from-coral/35 to-peach/10"
+    sky: "from-[#dceaff] to-[#f4f7ff]",
+    mint: "from-[#dff3ec] to-[#f3f7f6]",
+    gold: "from-[#fff0c9] to-[#fff8ef]",
+    coral: "from-[#ffdeda] to-[#fff3f0]"
   }[tone];
 
   return (
     <div
       className={cn(
-        "rounded-[28px] border border-white/75 bg-gradient-to-br p-5 shadow-[0_18px_48px_rgba(27,30,70,0.08)] backdrop-blur",
+        "rounded-[28px] border border-white bg-gradient-to-br p-5 shadow-[0_18px_48px_rgba(27,30,70,0.08)]",
         toneClass
       )}
     >
@@ -62,13 +86,120 @@ function MetricCard({
           [label, values.current],
           ["누적", values.cumulative]
         ].map(([label, value]) => (
-          <div className="rounded-2xl bg-white/55 px-3 py-2" key={label}>
+          <div className="rounded-2xl bg-white/65 px-3 py-2" key={label}>
             <p className="text-xs text-ink/48">{label}</p>
             <p className="mt-1 text-sm font-semibold text-ink">
               {formatAdminNumber(Number(value))}
             </p>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function ShareChannelPerformanceCard({
+  channels,
+  totalShares
+}: {
+  channels: Array<{
+    channel: string;
+    label: string;
+    current: number;
+    cumulative: number;
+    sessions: number;
+  }>;
+  totalShares: number;
+}) {
+  const visibleChannels = channels.filter((channel) => channel.current > 0 || channel.cumulative > 0);
+  const denominator = Math.max(totalShares, 1);
+
+  return (
+    <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-ink">공유 채널별 성과</p>
+          <p className="mt-1 text-xs text-ink/45">현재 기간 공유 이벤트 기준</p>
+        </div>
+        <span className="rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white">
+          {formatAdminNumber(totalShares)}
+        </span>
+      </div>
+      <div className="mt-4 space-y-3">
+        {visibleChannels.length === 0 ? (
+          <EmptyText>아직 공유 이벤트가 없습니다.</EmptyText>
+        ) : (
+          visibleChannels.map((channel) => {
+            const percent = Math.round((channel.current / denominator) * 100);
+
+            return (
+              <div className="rounded-2xl bg-ink/5 px-4 py-3" key={channel.channel}>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-ink">{channel.label}</p>
+                    <p className="mt-1 text-xs text-ink/45">
+                      세션 {formatAdminNumber(channel.sessions)} · 누적 {formatAdminNumber(channel.cumulative)}
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold text-ink">{formatAdminNumber(channel.current)}</p>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/80">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-coral to-gold"
+                    style={{ width: `${Math.min(Math.max(percent, 3), 100)}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EventHealthCard({
+  eventsLast24h,
+  lastEventAt,
+  lastEventType
+}: {
+  eventsLast24h: number;
+  lastEventAt: string | null;
+  lastEventType: string | null;
+}) {
+  const lastEventTime = lastEventAt ? new Date(lastEventAt).getTime() : 0;
+  const isStale = !lastEventAt || Date.now() - lastEventTime > 1000 * 60 * 60 * 6;
+
+  return (
+    <div className="rounded-[28px] border border-white/75 bg-white/75 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-ink">이벤트 수집 상태</p>
+          <p className="mt-1 text-xs text-ink/45">최근 이벤트 로깅 기준</p>
+        </div>
+        <span
+          className={cn(
+            "rounded-full px-3 py-1 text-xs font-semibold",
+            isStale ? "bg-coral/15 text-coral" : "bg-mint/20 text-ink"
+          )}
+        >
+          {isStale ? "확인 필요" : "정상"}
+        </span>
+      </div>
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="rounded-2xl bg-ink/5 px-4 py-3">
+          <p className="text-xs text-ink/48">최근 24시간 이벤트</p>
+          <p className="mt-2 text-2xl font-semibold text-ink">{formatAdminNumber(eventsLast24h)}</p>
+        </div>
+        <div className="rounded-2xl bg-ink/5 px-4 py-3">
+          <p className="text-xs text-ink/48">마지막 수집</p>
+          <p className="mt-2 text-lg font-semibold text-ink">{formatElapsed(lastEventAt)}</p>
+        </div>
+      </div>
+      <div className="mt-3 rounded-2xl bg-ink/5 px-4 py-3">
+        <p className="text-xs text-ink/48">마지막 이벤트</p>
+        <p className="mt-1 text-sm font-semibold text-ink">{lastEventType ?? "-"}</p>
+        <p className="mt-1 text-xs text-ink/45">{formatAdminDateTime(lastEventAt)}</p>
       </div>
     </div>
   );
@@ -84,7 +215,7 @@ function CompletionMetricCard({
   completedSessions: number;
 }) {
   return (
-    <div className="rounded-[28px] border border-white/75 bg-gradient-to-br from-mint/35 to-sky/10 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.08)] backdrop-blur">
+    <div className="rounded-[28px] border border-white bg-gradient-to-br from-[#dff3ec] to-[#f3f7f6] p-5 shadow-[0_18px_48px_rgba(27,30,70,0.08)]">
       <p className="text-sm font-semibold text-ink/72">생성 완료</p>
       <p className="mt-3 text-3xl font-semibold text-ink">
         {formatAdminNumber(completedSessions)}
@@ -95,7 +226,7 @@ function CompletionMetricCard({
           ["보드", boardValues.current],
           ["누적 보드", boardValues.cumulative]
         ].map(([label, value]) => (
-          <div className="rounded-2xl bg-white/55 px-3 py-2" key={label}>
+          <div className="rounded-2xl bg-white/65 px-3 py-2" key={label}>
             <p className="text-xs text-ink/48">{label}</p>
             <p className="mt-1 text-sm font-semibold text-ink">
               {formatAdminNumber(Number(value))}
@@ -569,8 +700,7 @@ export default async function AdminPage({
 
         <div className="rounded-[30px] border border-white/75 bg-white/75 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur md:flex md:items-center md:justify-between md:gap-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral">Maintenance Notice</p>
-            <h2 className="mt-1 text-xl font-semibold text-ink">
+            <h2 className="text-xl font-semibold text-ink">
               랜딩 점검 공지 {maintenanceNotice.active ? "ON" : "OFF"}
             </h2>
             <p className="mt-2 text-sm leading-6 text-ink/56">
@@ -589,8 +719,7 @@ export default async function AdminPage({
 
         <div className="rounded-[30px] border border-white/75 bg-white/75 p-5 shadow-[0_18px_48px_rgba(27,30,70,0.06)] backdrop-blur md:flex md:items-center md:justify-between md:gap-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-coral">Maintenance</p>
-            <h2 className="mt-1 text-xl font-semibold text-ink">점검 완료 알림</h2>
+            <h2 className="text-xl font-semibold text-ink">점검 완료 알림</h2>
             <p className="mt-2 text-sm leading-6 text-ink/56">
               미발송 신청자 이메일을 복사하고 Gmail 작성창을 엽니다. 발송 후 notified_at은 수동으로 기록해주세요.
             </p>
@@ -614,7 +743,7 @@ export default async function AdminPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-[repeat(4,minmax(180px,1fr))] gap-4 overflow-x-auto pb-1">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <MetricCard title="방문자 수" label={period.metricLabel} tone="sky" values={summary.visitors} />
           <CompletionMetricCard
             boardValues={summary.boardsCreated}
@@ -623,6 +752,15 @@ export default async function AdminPage({
           />
           <MetricCard title="이미지 길게 누른 횟수" label={period.metricLabel} tone="gold" values={summary.imageSaves} />
           <MetricCard title="이미지 및 링크 공유 횟수" label={period.metricLabel} tone="coral" values={summary.shares} />
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ShareChannelPerformanceCard channels={summary.shareChannels} totalShares={summary.shares.current} />
+          <EventHealthCard
+            eventsLast24h={summary.eventHealth.eventsLast24h}
+            lastEventAt={summary.eventHealth.lastEventAt}
+            lastEventType={summary.eventHealth.lastEventType}
+          />
         </div>
 
         <div className="space-y-3">
